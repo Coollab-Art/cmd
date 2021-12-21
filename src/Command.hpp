@@ -3,9 +3,6 @@
 namespace cmd {
 
 template<typename T>
-concept Command = requires(T command)
-{
-    apply(command);
-};
+concept Command = true;
 
 } // namespace cmd
