@@ -8,7 +8,13 @@ namespace cmd {
 template<typename ExecutorT, typename CommandT>
 concept Executor = requires(ExecutorT executor, CommandT command)
 {
-    executor(command);
+    executor.execute(command);
+};
+
+template<typename ReverterT, typename CommandT>
+concept Reverter = requires(ReverterT reverter, CommandT command)
+{
+    reverter.revert(command);
 };
 
 } // namespace cmd

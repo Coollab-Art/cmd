@@ -12,12 +12,12 @@ class Executor {
 public:
     std::string message;
 
-    void operator()(Command_SayHello)
+    void execute(Command_SayHello)
     {
         message = "Hello";
     }
 
-    void operator()(Command_SayWorld)
+    void execute(Command_SayWorld)
     {
         message = "World";
     }
@@ -27,7 +27,7 @@ template<typename Executor, typename Command>
 requires cmd::Executor<Executor, Command>
 void execute(Executor& executor, Command command)
 {
-    executor(command);
+    executor.execute(command);
 }
 
 TEST_CASE("Executor and Command concepts")
