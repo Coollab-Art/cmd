@@ -1,5 +1,6 @@
 #pragma once
 
+#include <utility>
 #include <vector>
 #include "Command.hpp"
 #include "Executor.hpp"
@@ -9,7 +10,9 @@ namespace cmd {
 template<Command CommandT>
 class History {
 public:
-    void move_forward(Executor const auto& executor)
+    template<typename ExecutorT>
+    requires Executor<ExecutorT, CommandT>
+    void move_forward(ExecutorT& executor)
     {
         if (_current_index < _commands.size()) {
             executor.execute(_commands[_current_index]); // If execute throws, then _current_index won't be modified and that's what we want because the exception means that the command couldn't be applied
@@ -17,7 +20,9 @@ public:
         }
     }
 
-    void move_backward(Reverter const auto& reverter)
+    template<typename ReverterT>
+    requires Reverter<ReverterT, CommandT>
+    void move_backward(ReverterT& reverter)
     {
         if (_current_index > 0) {
             reverter.revert(_commands[_current_index - 1]); // If revert throws, then _current_index won't be modified and that's what we want because the exception means that the command couldn't be reverted
@@ -35,19 +40,17 @@ public:
         push_impl(command);
     }
 
-    size_t size() const { return _commands.size(); }
-
 private:
     template<typename T>
     void push_impl(T&& command)
     {
         _commands.resize(_current_index + 1);
-        _commands.push_back(std::forward(command));
+        _commands.push_back(std::forward<T>(command));
         _current_index++;
     }
 
 private:
-    size_t                _current_index;
+    size_t                _current_index = 0;
     std::vector<CommandT> _commands;
 };
 
