@@ -49,7 +49,7 @@ private:
     template<typename T>
     void push_impl(T&& command)
     {
-        _commands.resize(_current_index + 1);
+        _commands.resize(_current_index);
         _commands.push_back(std::forward<T>(command));
         _current_index++;
     }
