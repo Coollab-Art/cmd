@@ -40,6 +40,11 @@ public:
         push_impl(command);
     }
 
+    auto underlying_container() const -> const std::vector<CommandT>& { return _commands; }
+    auto underlying_container() -> std::vector<CommandT>& { return _commands; }
+
+    auto current_command_index() const { return _current_index; }
+
 private:
     template<typename T>
     void push_impl(T&& command)
