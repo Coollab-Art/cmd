@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <utility>
 #include <vector>
 #include "Command.hpp"
@@ -43,7 +44,9 @@ public:
     auto underlying_container() const -> const std::vector<CommandT>& { return _commands; }
     auto underlying_container() -> std::vector<CommandT>& { return _commands; }
 
-    auto current_command_index() const { return _current_index; }
+    auto current_command_iterator() const { return _commands.cbegin() + _current_index; }
+
+    auto time_since_last_push() const { return std::chrono::steady_clock::now() - _last_push_date; }
 
 private:
     template<typename T>
@@ -52,11 +55,13 @@ private:
         _commands.resize(_current_index);
         _commands.push_back(std::forward<T>(command));
         _current_index++;
+        _last_push_date = std::chrono::steady_clock::now();
     }
 
 private:
-    size_t                _current_index = 0;
-    std::vector<CommandT> _commands;
+    size_t                                _current_index = 0;
+    std::vector<CommandT>                 _commands;
+    std::chrono::steady_clock::time_point _last_push_date{std::chrono::steady_clock::now()};
 };
 
 } // namespace cmd
