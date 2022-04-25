@@ -46,6 +46,9 @@ public:
 
     auto current_command_iterator() const { return _commands.cbegin() + _current_index; }
 
+    // Exposed for serialization purposes. Don't use this unless you have a really good reason to.
+    auto unsafe_current_command_index_ref() -> size_t& { return _current_index; }
+
     auto time_since_last_push() const { return std::chrono::steady_clock::now() - _last_push_date; }
 
 private:
@@ -59,7 +62,7 @@ private:
     }
 
 private:
-    size_t                                _current_index = 0;
+    size_t                                _current_index{0};
     std::vector<CommandT>                 _commands;
     std::chrono::steady_clock::time_point _last_push_date{std::chrono::steady_clock::now()};
 };
