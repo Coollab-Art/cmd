@@ -11,6 +11,11 @@ namespace cmd {
 template<Command CommandT>
 class History {
 public:
+    explicit History(size_t max_size)
+        : _max_size{max_size}
+    {
+    }
+
     template<typename ExecutorT>
     requires Executor<ExecutorT, CommandT>
     void move_forward(ExecutorT& executor)
@@ -41,6 +46,16 @@ public:
         push_impl(command);
     }
 
+    auto max_size() const -> size_t
+    {
+        return _max_size;
+    }
+
+    void set_max_size(size_t new_size)
+    {
+        _max_size = new_size;
+    }
+
     auto underlying_container() const -> const std::vector<CommandT>& { return _commands; }
     auto underlying_container() -> std::vector<CommandT>& { return _commands; }
 
@@ -63,6 +78,7 @@ private:
 
 private:
     size_t                                _current_index{0};
+    size_t                                _max_size;
     std::vector<CommandT>                 _commands;
     std::chrono::steady_clock::time_point _last_push_date{std::chrono::steady_clock::now()};
 };
