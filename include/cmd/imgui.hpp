@@ -10,6 +10,7 @@ class HistoryWithUi : public History<CommandT> {
 public:
     explicit HistoryWithUi(size_t max_size)
         : History<CommandT>{max_size}
+        , _uncommited_max_size{max_size}
     {
     }
 
@@ -44,6 +45,17 @@ public:
         }
     }
 
+    bool imgui_max_size(const char* label = "Max size")
+    {
+        static_assert(sizeof(_uncommited_max_size) == 8, "The ImGui widget expects a u64 integer");
+        ImGui::InputScalar(label, ImGuiDataType_U64, &_uncommited_max_size);
+        if (ImGui::IsItemDeactivatedAfterEdit()) {
+            History<CommandT>::set_max_size(_uncommited_max_size);
+            return true;
+        }
+        return false;
+    }
+
 private:
     template<typename T>
     void push_impl(T&& command)
@@ -57,8 +69,7 @@ private:
 
 private:
     std::chrono::steady_clock::time_point _last_push_date{std::chrono::steady_clock::now()};
+    size_t                                _uncommited_max_size;
 };
-    }
-}
 
 } // namespace cmd
