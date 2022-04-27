@@ -1,7 +1,5 @@
 #pragma once
 
-#include <chrono>
-#include <utility>
 #include <vector>
 #include "Command.hpp"
 #include "Executor.hpp"
@@ -36,14 +34,14 @@ public:
         }
     }
 
-    void push(const CommandT& command)
+    virtual void push(const CommandT& command)
     {
         push_impl(command);
     }
 
-    void push(CommandT&& command)
+    virtual void push(CommandT&& command)
     {
-        push_impl(command);
+        push_impl(std::move(command));
     }
 
     auto max_size() const -> size_t
@@ -64,8 +62,6 @@ public:
     // Exposed for serialization purposes. Don't use this unless you have a really good reason to.
     auto unsafe_current_command_index_ref() -> size_t& { return _current_index; }
 
-    auto time_since_last_push() const { return std::chrono::steady_clock::now() - _last_push_date; }
-
 private:
     template<typename T>
     void push_impl(T&& command)
@@ -73,14 +69,12 @@ private:
         _commands.resize(_current_index);
         _commands.push_back(std::forward<T>(command));
         _current_index++;
-        _last_push_date = std::chrono::steady_clock::now();
     }
 
 private:
-    size_t                                _current_index{0};
-    size_t                                _max_size;
-    std::vector<CommandT>                 _commands;
-    std::chrono::steady_clock::time_point _last_push_date{std::chrono::steady_clock::now()};
+    size_t                _current_index{0};
+    size_t                _max_size;
+    std::vector<CommandT> _commands;
 };
 
 } // namespace cmd
