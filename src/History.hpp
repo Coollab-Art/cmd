@@ -9,7 +9,7 @@ namespace cmd {
 template<Command CommandT>
 class History {
 public:
-    explicit History(size_t max_size)
+    explicit History(size_t max_size = 1000)
         : _max_size{max_size}
     {
     }
