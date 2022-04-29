@@ -51,10 +51,7 @@ public:
 
     void erase_all_starting_at(iterator it)
     {
-        // if (it != _container.end())
-        {
-            _container.erase(it, _container.end());
-        }
+        _container.erase(it, _container.end());
     }
 
     auto underlying_container() -> std::list<T>& { return _container; }
