@@ -80,7 +80,33 @@ public:
     auto current_command_iterator() const { return _next_command_to_execute; }
 
     // Exposed for serialization purposes. Don't use this unless you have a really good reason to.
-    // auto unsafe_current_command_index_ref() -> size_t& { return _current_index; }
+    void unsafe_set_next_command_to_execute(std::optional<size_t> index)
+    {
+        if (index) {
+            _next_command_to_execute = _commands.begin();
+            for (size_t i = 0; i < *index; ++i) {
+                (*_next_command_to_execute)++;
+            }
+        }
+        else {
+            _next_command_to_execute.reset();
+        }
+    }
+
+    // Exposed for serialization purposes. Don't use this unless you have a really good reason to.
+    auto unsafe_get_next_command_to_execute() const -> std::optional<size_t>
+    {
+        if (_next_command_to_execute) {
+            size_t dist{0};
+            for (auto it = _commands.begin(); it != *_next_command_to_execute; ++it) {
+                ++dist;
+            }
+            return dist;
+        }
+        else {
+            return std::nullopt;
+        }
+    }
 
 private:
     template<typename T>

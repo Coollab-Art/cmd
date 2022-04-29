@@ -46,6 +46,7 @@ public:
     }
 
     auto begin() { return _container.begin(); }
+    auto begin() const { return _container.begin(); }
     auto end() { return _container.end(); }
 
     void erase_all_starting_at(iterator it)
@@ -56,10 +57,8 @@ public:
         }
     }
 
-    auto underlying_container() -> std::list<T>&
-    {
-        return _container;
-    }
+    auto underlying_container() -> std::list<T>& { return _container; }
+    auto underlying_container() const -> const std::list<T>& { return _container; }
 
 private:
     template<typename Tref>
