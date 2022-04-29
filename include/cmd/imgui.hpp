@@ -33,15 +33,16 @@ public:
             if (it == History<CommandT>::current_command_iterator()) {
                 drawn = true;
                 ImGui::Separator();
+                using namespace std::chrono_literals;
+                // if (time_since_last_push() < 500ms)
+                {
+                    ImGui::SetScrollHereY(1.0f);
+                }
             }
             ImGui::Text("%s", command_to_string(*it).c_str());
         }
         if (!drawn) {
             ImGui::Separator();
-        }
-        using namespace std::chrono_literals;
-        if (time_since_last_push() < 500ms) {
-            ImGui::SetScrollHereY(1.0f);
         }
     }
 
