@@ -1,8 +1,10 @@
 #pragma once
 
+#include <optional>
 #include <vector>
 #include "Command.hpp"
 #include "Executor.hpp"
+#include "internal/CircularBuffer.hpp"
 
 namespace cmd {
 
@@ -10,7 +12,7 @@ template<Command CommandT>
 class History {
 public:
     explicit History(size_t max_size = 1000)
-        : _max_size{max_size}
+        : _commands{max_size}
     {
     }
 
@@ -18,9 +20,11 @@ public:
     requires Executor<ExecutorT, CommandT>
     void move_forward(ExecutorT& executor)
     {
-        if (_current_index < _commands.size()) {
-            executor.execute(_commands[_current_index]); // If execute throws, then _current_index won't be modified and that's what we want because the exception means that the command couldn't be applied
-            _current_index++;
+        if (_next_command_to_execute) {
+            if (*_next_command_to_execute != _commands.end()) {
+                executor.execute(**_next_command_to_execute); // If execute throws, then _next_command_to_execute won't be modified and that's what we want because the exception means that the command couldn't be applied
+                (*_next_command_to_execute)++;
+            }
         }
     }
 
@@ -28,9 +32,11 @@ public:
     requires Reverter<ReverterT, CommandT>
     void move_backward(ReverterT& reverter)
     {
-        if (_current_index > 0) {
-            reverter.revert(_commands[_current_index - 1]); // If revert throws, then _current_index won't be modified and that's what we want because the exception means that the command couldn't be reverted
-            _current_index--;
+        if (_next_command_to_execute) {
+            if (*_next_command_to_execute != _commands.begin()) {
+                reverter.revert(*std::prev(*_next_command_to_execute)); // If revert throws, then _next_command_to_execute won't be modified and that's what we want because the exception means that the command couldn't be reverted
+                (*_next_command_to_execute)--;
+            }
         }
     }
 
@@ -46,35 +52,50 @@ public:
 
     auto max_size() const -> size_t
     {
-        return _max_size;
+        return _commands.max_size();
     }
 
-    void set_max_size(size_t new_size)
+    /// If you reduce max_size, we will have to delete some commits from the history.
+    /// We start deleting commits that are furthest away in the future, until we reach one commit before the current one.
+    /// This means that you will be able to move forward at least once after setting max_size (unless you set it to 0, or you were already at the most forward point in your history)
+    /// If there is still a need to delete commits, we will then start deleting the commits that are furthest away in the past.
+    /// NB: this choice was done because it was the simplest to implement, but we could consider adding other policies of which commits to keep.
+    void set_max_size(size_t new_max_size)
     {
-        _max_size = new_size;
+        if (_next_command_to_execute) {
+            _commands.set_max_size_and_preserve_given_iterator(new_max_size,
+                                                               *_next_command_to_execute);
+            if (new_max_size == 0) {
+                _next_command_to_execute.reset();
+            }
+        }
+        else {
+            _commands.set_max_size(new_max_size);
+        }
     }
 
-    auto underlying_container() const -> const std::vector<CommandT>& { return _commands; }
-    auto underlying_container() -> std::vector<CommandT>& { return _commands; }
+    auto underlying_container() const -> const std::list<CommandT>& { return _commands.underlying_container(); }
+    auto underlying_container() -> std::list<CommandT>& { return _commands.underlying_container(); }
 
-    auto current_command_iterator() const { return _commands.cbegin() + _current_index; }
+    auto current_command_iterator() const { return _next_command_to_execute; }
 
     // Exposed for serialization purposes. Don't use this unless you have a really good reason to.
-    auto unsafe_current_command_index_ref() -> size_t& { return _current_index; }
+    // auto unsafe_current_command_index_ref() -> size_t& { return _current_index; }
 
 private:
     template<typename T>
     void push_impl(T&& command)
     {
-        _commands.resize(_current_index);
+        if (_next_command_to_execute) {
+            _commands.erase_all_starting_at(*_next_command_to_execute);
+        }
         _commands.push_back(std::forward<T>(command));
-        _current_index++;
+        _next_command_to_execute = _commands.end();
     }
 
 private:
-    size_t                _current_index{0};
-    size_t                _max_size;
-    std::vector<CommandT> _commands;
+    internal::CircularBuffer<CommandT>                                   _commands;
+    std::optional<typename internal::CircularBuffer<CommandT>::iterator> _next_command_to_execute{};
 };
 
 } // namespace cmd

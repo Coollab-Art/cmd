@@ -77,44 +77,107 @@ TEST_CASE("History")
 {
     Executor_SetInt              executor{};
     cmd::History<Command_SetInt> history{};
-    REQUIRE(executor.value() == 0);
 
-    executor.set_value(10, history);
-    REQUIRE(executor.value() == 10);
+    SUBCASE("Moving backward and forward")
+    {
+        REQUIRE(executor.value() == 0);
 
-    history.move_backward(executor);
-    REQUIRE(executor.value() == 0);
+        executor.set_value(10, history);
+        REQUIRE(executor.value() == 10);
 
-    history.move_backward(executor);
-    REQUIRE(executor.value() == 0);
+        history.move_backward(executor);
+        REQUIRE(executor.value() == 0);
 
-    history.move_forward(executor);
-    REQUIRE(executor.value() == 10);
+        history.move_backward(executor);
+        REQUIRE(executor.value() == 0);
 
-    history.move_forward(executor);
-    REQUIRE(executor.value() == 10);
+        history.move_forward(executor);
+        REQUIRE(executor.value() == 10);
 
-    history.move_backward(executor);
-    REQUIRE(executor.value() == 0);
+        history.move_forward(executor);
+        REQUIRE(executor.value() == 10);
 
-    executor.set_value(25, history);
-    REQUIRE(executor.value() == 25);
+        history.move_backward(executor);
+        REQUIRE(executor.value() == 0);
 
-    history.move_backward(executor);
-    REQUIRE(executor.value() == 0);
+        executor.set_value(25, history);
+        REQUIRE(executor.value() == 25);
 
-    history.move_forward(executor);
-    REQUIRE(executor.value() == 25);
+        history.move_backward(executor);
+        REQUIRE(executor.value() == 0);
 
-    history.move_forward(executor);
-    REQUIRE(executor.value() == 25);
+        history.move_forward(executor);
+        REQUIRE(executor.value() == 25);
 
-    history.move_backward(executor);
-    REQUIRE(executor.value() == 0);
+        history.move_forward(executor);
+        REQUIRE(executor.value() == 25);
 
-    history.move_backward(executor);
-    REQUIRE(executor.value() == 0);
+        history.move_backward(executor);
+        REQUIRE(executor.value() == 0);
 
-    history.move_backward(executor);
-    REQUIRE(executor.value() == 0);
+        history.move_backward(executor);
+        REQUIRE(executor.value() == 0);
+
+        history.move_backward(executor);
+        REQUIRE(executor.value() == 0);
+    }
+
+    SUBCASE("set_max_size() while the current commit is in the middle of the history")
+    {
+        history.set_max_size(3);
+        REQUIRE(history.max_size() == 3);
+        REQUIRE(executor.value() == 0);
+
+        executor.set_value(1, history);
+        executor.set_value(2, history);
+        executor.set_value(3, history);
+        // Now history is full
+        history.move_backward(executor);
+        history.move_backward(executor);
+        REQUIRE(executor.value() == 1);
+        // Now we are one after the first commit in the history
+        history.set_max_size(1);
+        // Now there is only one commit left in the history, and this is the one we can execute next
+        history.move_backward(executor); // no-op, the first commit is gone
+        REQUIRE(executor.value() == 1);
+        history.move_forward(executor); // move forward
+        REQUIRE(executor.value() == 2);
+        history.move_forward(executor); // no-op, the last commit is gone
+        REQUIRE(executor.value() == 2);
+    }
+
+    SUBCASE("set_max_size() when we are at the end of the history")
+    {
+        history.set_max_size(3);
+        REQUIRE(history.max_size() == 3);
+        REQUIRE(executor.value() == 0);
+        executor.set_value(1, history);
+        executor.set_value(2, history);
+        executor.set_value(3, history);
+
+        history.set_max_size(1);
+
+        history.move_backward(executor);
+        REQUIRE(executor.value() == 2);
+        history.move_forward(executor);
+        REQUIRE(executor.value() == 3);
+    }
+
+    SUBCASE("set_max_size(0) when we are in the middle of the history")
+    {
+        history.set_max_size(2);
+        REQUIRE(history.max_size() == 2);
+        REQUIRE(executor.value() == 0);
+        executor.set_value(1, history);
+        executor.set_value(2, history);
+        history.move_backward(executor);
+        REQUIRE(executor.value() == 1);
+
+        history.set_max_size(0);
+
+        history.move_backward(executor); // no-op
+        REQUIRE(executor.value() == 1);
+        history.move_forward(executor); // no-op
+        REQUIRE(executor.value() == 1);
+    }
 }
