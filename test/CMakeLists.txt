@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.8)
 project(cmd-tests)
 
-add_executable(${PROJECT_NAME} test.cpp)
+add_executable(${PROJECT_NAME}
+    CircularBuffer.cpp
+    History.cpp
+)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 
 if (MSVC)
