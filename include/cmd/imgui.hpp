@@ -23,32 +23,32 @@ auto size_as_string(float multiplier) -> std::string
 
 } // namespace internal
 
-template<Command CommandT>
-class HistoryWithUi : public History<CommandT> {
-public:
-    explicit HistoryWithUi(size_t max_size = 1000)
-        : History<CommandT>{max_size}
-        , _uncommited_max_size{max_size}
-    {}
+struct UiForHistory {
+    std::chrono::steady_clock::time_point _last_push_date{std::chrono::steady_clock::now()};
+    size_t                                _uncommited_max_size;
 
-    void push(const CommandT& command) override
+    template<Command CommandT>
+    void push(History<CommandT>& history, const CommandT& command)
     {
-        push_impl(command);
+        _last_push_date = std::chrono::steady_clock::now();
+        history.push(command);
     }
 
-    void push(CommandT&& command) override
+    template<Command CommandT>
+    void push(History<CommandT>& history, CommandT&& command)
     {
-        push_impl(std::move(command));
+        _last_push_date = std::chrono::steady_clock::now();
+        history.push(std::move(command));
     }
 
-    template<typename CommandToString>
-    void imgui_show(CommandToString&& command_to_string)
+    template<typename CommandToString, Command CommandT>
+    void imgui_show(const History<CommandT>& history, CommandToString&& command_to_string)
     {
-        const auto& commands = History<CommandT>::underlying_container();
+        const auto& commands = history.underlying_container();
         bool        drawn    = false;
         for (auto it = commands.cbegin(); it != commands.cend(); ++it)
         {
-            if (it == History<CommandT>::current_command_iterator())
+            if (it == history.current_command_iterator())
             {
                 drawn = true;
                 ImGui::Separator();
@@ -66,7 +66,8 @@ public:
         }
     }
 
-    auto imgui_max_size() -> bool
+    template<Command CommandT>
+    auto imgui_max_size(History<CommandT>& history) -> bool
     {
         static_assert(sizeof(_uncommited_max_size) == 8, "The ImGui widget expects a u64 integer");
         ImGui::Text("Maximum history size");
@@ -76,7 +77,7 @@ public:
         const bool has_changed_max_size = [&]() {
             if (ImGui::IsItemDeactivatedAfterEdit())
             {
-                History<CommandT>::set_max_size(_uncommited_max_size);
+                history.set_max_size(_uncommited_max_size);
                 return true;
             }
             else
@@ -86,64 +87,70 @@ public:
         }();
         if (!ImGui::IsItemActive()) // Sync with the current max_size if we are not editing // Must be after the check for IsItemDeactivatedAfterEdit() otherwise the value can't be set properly when we finish editing
         {
-            _uncommited_max_size = History<CommandT>::max_size();
+            _uncommited_max_size = history.max_size();
         }
         ImGui::PopID();
         ImGui::SameLine();
         ImGui::Text("commits (%s)", internal::size_as_string<CommandT>(static_cast<float>(_uncommited_max_size)).c_str());
-        if (_uncommited_max_size != History<CommandT>::max_size())
+        if (_uncommited_max_size != history.max_size())
         {
-            ImGui::TextDisabled("Previously: %lld", History<CommandT>::max_size());
+            ImGui::TextDisabled("Previously: %lld", history.max_size());
         }
-        if (_uncommited_max_size < History<CommandT>::size())
+        if (_uncommited_max_size < history.size())
         {
             ImGui::TextColored({1.f, 1.f, 0.f, 1.f},
                                "Some commits will be erased because you are reducing the size of the history!\nThe current size is %lld.",
-                               History<CommandT>::size());
+                               history.size());
         }
         return has_changed_max_size;
     }
 
-    auto max_saved_size() const -> size_t { return _max_saved_size; }
+    auto time_since_last_push() const { return std::chrono::steady_clock::now() - _last_push_date; }
+};
 
-    // Exposed for serialization purposes. Don't use this unless you have a really good reason to.
-    void unsafe_set_uncommited_max_size(size_t size) { _uncommited_max_size = size; }
-
-private:
-    template<typename T>
-    void push_impl(T&& command)
+template<Command CommandT>
+class HistoryWithUi {
+public:
+    template<typename CommandToString>
+    void imgui_show(CommandToString&& command_to_string)
     {
-        History<CommandT>::push(std::forward<T>(command));
-
-        _last_push_date = std::chrono::steady_clock::now();
+        _ui.imgui_show(_history, std::forward<CommandToString>(command_to_string));
     }
 
-    auto time_since_last_push() const { return std::chrono::steady_clock::now() - _last_push_date; }
+    auto imgui_max_size() -> bool
+    {
+        return _ui.imgui_max_size(_history);
+    }
+
+    // auto max_saved_size() const -> size_t { return _max_saved_size; }
+
+    // Exposed for serialization purposes. Don't use this unless you have a really good reason to.
+    // void unsafe_set_uncommited_max_size(size_t size) { _uncommited_max_size = size; }
+
+    // ---Boilerplate to replicate the API of an History---
+    explicit HistoryWithUi(size_t max_size = 1000)
+        : _history{max_size}
+    {}
+    void push(const CommandT& command) { _ui.push(_history, command); }
+    void push(CommandT&& command) { _ui.push(_history, std::move(command)); }
+    template<typename ExecutorT>
+    requires Executor<ExecutorT, CommandT>
+    void move_forward(ExecutorT& executor)
+    {
+        _history.move_forward(executor);
+    }
+    template<typename ReverterT>
+    requires Reverter<ReverterT, CommandT>
+    void move_backward(ReverterT& reverter)
+    {
+        _history.move_backward(reverter);
+    }
+    // ---End of boilerplate---
 
 private:
-    std::chrono::steady_clock::time_point _last_push_date{std::chrono::steady_clock::now()};
-    size_t                                _uncommited_max_size;
-    size_t                                _uncommited_max_saved_size;
-    size_t                                _max_saved_size{5};
+    // size_t       _max_saved_size{5};
+    History<CommandT> _history;
+    UiForHistory      _ui{};
 };
 
 } // namespace cmd
-
-namespace cereal {
-
-template<class Archive, cmd::Command CommandT>
-void save(Archive& archive, const cmd::HistoryWithUi<CommandT>& history)
-{
-    auto copy = cmd::History<CommandT>{history.clone()}; // We make a copy because we don't want to shrink the actual history,
-    copy.shrink(history.max_saved_size());               // in case it is still used even after being serialized
-    archive(cereal::make_nvp("History", copy));
-}
-
-template<class Archive, cmd::Command CommandT>
-void load(Archive& archive, cmd::HistoryWithUi<CommandT>& history)
-{
-    archive(cereal::make_nvp("History", static_cast<cmd::History<CommandT>&>(history)));
-    history.unsafe_set_uncommited_max_size(history.max_size());
-}
-
-} // namespace cereal
