@@ -15,6 +15,17 @@ public:
         : _commands{max_size}
     {}
 
+    History(History&&) noexcept = default;
+    History& operator=(History&&) noexcept = default;
+
+    History clone() const
+    {
+        History copy{*this};
+        copy.unsafe_set_next_command_to_execute( // To properly "copy" the iterator
+            this->unsafe_get_next_command_to_execute());
+        return copy;
+    }
+
     template<typename ExecutorT>
     requires Executor<ExecutorT, CommandT>
     void move_forward(ExecutorT& executor)
@@ -79,6 +90,25 @@ public:
         }
     }
 
+    /// Removes commits until the size of the history is <= max_size
+    void shrink(size_t max_size)
+    {
+        if (_next_command_to_execute)
+        {
+            _commands.shrink_and_preserve_given_iterator(max_size,
+                                                         *_next_command_to_execute);
+            if (max_size == 0)
+            {
+                _next_command_to_execute.reset();
+            }
+        }
+        else
+        {
+            // No need to do anything since _commands is already empty
+            assert(_commands.is_empty());
+        }
+    }
+
     auto underlying_container() const -> const std::list<CommandT>& { return _commands.underlying_container(); }
     auto underlying_container() -> std::list<CommandT>& { return _commands.underlying_container(); }
 
@@ -130,6 +160,9 @@ private:
         _commands.push_back(std::forward<T>(command));
         _next_command_to_execute = _commands.end();
     }
+
+    History(const History&) = default;            // Use `clone()` instead
+    History& operator=(const History&) = default; // if you want a copy of your history
 
 private:
     internal::CircularBuffer<CommandT>                                   _commands;

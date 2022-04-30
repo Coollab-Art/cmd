@@ -104,6 +104,8 @@ public:
         return has_changed_max_size;
     }
 
+    auto max_saved_size() const -> size_t { return _max_saved_size; }
+
     // Exposed for serialization purposes. Don't use this unless you have a really good reason to.
     void unsafe_set_uncommited_max_size(size_t size) { _uncommited_max_size = size; }
 
@@ -121,6 +123,8 @@ private:
 private:
     std::chrono::steady_clock::time_point _last_push_date{std::chrono::steady_clock::now()};
     size_t                                _uncommited_max_size;
+    size_t                                _uncommited_max_saved_size;
+    size_t                                _max_saved_size{5};
 };
 
 } // namespace cmd
@@ -130,7 +134,9 @@ namespace cereal {
 template<class Archive, cmd::Command CommandT>
 void save(Archive& archive, const cmd::HistoryWithUi<CommandT>& history)
 {
-    archive(cereal::make_nvp("History", static_cast<const cmd::History<CommandT>&>(history)));
+    auto copy = cmd::History<CommandT>{history.clone()}; // We make a copy because we don't want to shrink the actual history,
+    copy.shrink(history.max_saved_size());               // in case it is still used even after being serialized
+    archive(cereal::make_nvp("History", copy));
 }
 
 template<class Archive, cmd::Command CommandT>

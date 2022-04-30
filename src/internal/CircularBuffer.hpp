@@ -41,6 +41,14 @@ public:
         shrink_while_preserving(iterator_to_preserve);
     }
 
+    void shrink_and_preserve_given_iterator(size_t new_max_size, iterator iterator_to_preserve)
+    {
+        const auto tmp = _max_size;
+        _max_size      = new_max_size;
+        shrink_while_preserving(iterator_to_preserve);
+        _max_size = tmp;
+    }
+
     void resize(size_t new_size)
     {
         _container.resize(new_size);
@@ -49,6 +57,8 @@ public:
     auto begin() { return _container.begin(); }
     auto begin() const { return _container.begin(); }
     auto end() { return _container.end(); }
+
+    auto is_empty() const -> bool { return _container.empty(); }
 
     void erase_all_starting_at(iterator it)
     {
