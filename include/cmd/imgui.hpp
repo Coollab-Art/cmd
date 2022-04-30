@@ -1,6 +1,5 @@
 #pragma once
 
-#include <chrono>
 #include <sstream>
 #include <string>
 #include "cmd.hpp"
@@ -64,45 +63,48 @@ inline auto imgui_input_history_size(size_t* value, size_t previous_value, int u
 } // namespace internal
 
 struct UiForHistory {
-    std::chrono::steady_clock::time_point last_push_date{std::chrono::steady_clock::now()};
-    size_t                                uncommited_max_size{};
+    bool   should_scroll_to_current_commit{true};
+    size_t uncommited_max_size{};
 
     template<Command CommandT>
     void push(History<CommandT>& history, const CommandT& command)
     {
-        last_push_date = std::chrono::steady_clock::now();
+        should_scroll_to_current_commit = true;
         history.push(command);
     }
 
     template<Command CommandT>
     void push(History<CommandT>& history, CommandT&& command)
     {
-        last_push_date = std::chrono::steady_clock::now();
+        should_scroll_to_current_commit = true;
         history.push(std::move(command));
     }
 
     template<Command CommandT, typename CommandToString>
     void imgui_show(const History<CommandT>& history, CommandToString&& command_to_string)
     {
-        const auto& commands = history.underlying_container();
-        bool        drawn    = false;
+        const auto& commands                 = history.underlying_container();
+        bool        drawn                    = false;
+        const auto  draw_position_in_history = [&]() {
+            ImGui::Separator();
+            if (should_scroll_to_current_commit)
+            {
+                ImGui::SetScrollHereY(1.0f);
+                should_scroll_to_current_commit = false;
+            }
+        };
         for (auto it = commands.cbegin(); it != commands.cend(); ++it)
         {
+            ImGui::Text("%s", command_to_string(*it).c_str());
             if (it == history.current_command_iterator())
             {
+                draw_position_in_history();
                 drawn = true;
-                ImGui::Separator();
-                using namespace std::chrono_literals;
-                // if (time_since_last_push() < 500ms)
-                {
-                    ImGui::SetScrollHereY(1.0f);
-                }
             }
-            ImGui::Text("%s", command_to_string(*it).c_str());
         }
         if (!drawn)
         {
-            ImGui::Separator();
+            draw_position_in_history();
         }
     }
 
@@ -133,8 +135,6 @@ struct UiForHistory {
         }
         return res.is_item_deactivated_after_edit;
     }
-
-    auto time_since_last_push() const { return std::chrono::steady_clock::now() - last_push_date; }
 };
 
 template<Command CommandT>
