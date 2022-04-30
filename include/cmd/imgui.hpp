@@ -104,6 +104,9 @@ public:
         return has_changed_max_size;
     }
 
+    // Exposed for serialization purposes. Don't use this unless you have a really good reason to.
+    void unsafe_set_uncommited_max_size(size_t size) { _uncommited_max_size = size; }
+
 private:
     template<typename T>
     void push_impl(T&& command)
@@ -121,3 +124,20 @@ private:
 };
 
 } // namespace cmd
+
+namespace cereal {
+
+template<class Archive, cmd::Command CommandT>
+void save(Archive& archive, const cmd::HistoryWithUi<CommandT>& history)
+{
+    archive(cereal::make_nvp("History", static_cast<const cmd::History<CommandT>&>(history)));
+}
+
+template<class Archive, cmd::Command CommandT>
+void load(Archive& archive, cmd::HistoryWithUi<CommandT>& history)
+{
+    archive(cereal::make_nvp("History", static_cast<cmd::History<CommandT>&>(history)));
+    history.unsafe_set_uncommited_max_size(history.max_size());
+}
+
+} // namespace cereal
