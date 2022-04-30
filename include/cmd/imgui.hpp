@@ -66,17 +66,28 @@ public:
         }
     }
 
-    bool imgui_max_size(const char* label = "Max size")
+    auto imgui_max_size(const char* label = "Max size") -> bool
     {
         static_assert(sizeof(_uncommited_max_size) == 8, "The ImGui widget expects a u64 integer");
-        ImGui::InputScalar(label, ImGuiDataType_U64, &_uncommited_max_size);
-        ImGui::Text("(%s)", internal::size_as_string<CommandT>(static_cast<float>(_uncommited_max_size)).c_str());
-        if (ImGui::IsItemDeactivatedAfterEdit())
-        {
-            History<CommandT>::set_max_size(_uncommited_max_size);
-            return true;
-        }
-        return false;
+        ImGui::Text("%s", label);
+        ImGui::PushID(1354321);
+        ImGui::SetNextItemWidth(12.f + ImGui::CalcTextSize(std::to_string(_uncommited_max_size).c_str()).x); // Adapt the widget size to exactly fit the text input
+        ImGui::InputScalar("", ImGuiDataType_U64, &_uncommited_max_size);
+        const auto has_changed_max_size = [&]() {
+            if (ImGui::IsItemDeactivatedAfterEdit())
+            {
+                History<CommandT>::set_max_size(_uncommited_max_size);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }();
+        ImGui::PopID();
+        ImGui::SameLine();
+        ImGui::Text("commits (%s)", internal::size_as_string<CommandT>(static_cast<float>(_uncommited_max_size)).c_str());
+        return has_changed_max_size;
     }
 
 private:
