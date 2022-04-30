@@ -25,6 +25,8 @@ public:
         push_back_impl(std::move(t));
     }
 
+    auto size() const -> size_t { return _container.size(); }
+
     auto max_size() const -> size_t { return _max_size; }
 
     void set_max_size(size_t new_max_size)

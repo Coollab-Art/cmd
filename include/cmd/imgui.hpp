@@ -87,6 +87,16 @@ public:
         ImGui::PopID();
         ImGui::SameLine();
         ImGui::Text("commits (%s)", internal::size_as_string<CommandT>(static_cast<float>(_uncommited_max_size)).c_str());
+        if (_uncommited_max_size != History<CommandT>::max_size())
+        {
+            ImGui::TextDisabled("Previously: %lld", History<CommandT>::max_size());
+        }
+        if (_uncommited_max_size < History<CommandT>::size())
+        {
+            ImGui::TextColored({1.f, 1.f, 0.f, 1.f},
+                               "Some commits will be erased because you are reducing the size of the history!\nThe current size is %lld.",
+                               History<CommandT>::size());
+        }
         return has_changed_max_size;
     }
 

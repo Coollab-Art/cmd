@@ -53,10 +53,9 @@ public:
         push_impl(std::move(command));
     }
 
-    auto max_size() const -> size_t
-    {
-        return _commands.max_size();
-    }
+    auto size() const -> size_t { return _commands.size(); }
+
+    auto max_size() const -> size_t { return _commands.max_size(); }
 
     /// If you reduce max_size, we will have to delete some commits from the history.
     /// We start deleting commits that are furthest away in the future, until we reach one commit before the current one.
