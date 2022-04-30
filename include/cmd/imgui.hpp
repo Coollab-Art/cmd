@@ -80,6 +80,22 @@ struct UiForHistory {
         history.push(std::move(command));
     }
 
+    template<Command CommandT, typename ExecutorT>
+    requires Executor<ExecutorT, CommandT>
+    void move_forward(History<CommandT>& history, ExecutorT& executor)
+    {
+        should_scroll_to_current_commit = true;
+        history.move_forward(executor);
+    }
+
+    template<Command CommandT, typename ReverterT>
+    requires Reverter<ReverterT, CommandT>
+    void move_backward(History<CommandT>& history, ReverterT& reverter)
+    {
+        should_scroll_to_current_commit = true;
+        history.move_backward(reverter);
+    }
+
     template<Command CommandT, typename CommandToString>
     void imgui_show(const History<CommandT>& history, CommandToString&& command_to_string)
     {
@@ -155,16 +171,10 @@ public:
     void push(CommandT&& command) { _ui.push(_history, std::move(command)); }
     template<typename ExecutorT>
     requires Executor<ExecutorT, CommandT>
-    void move_forward(ExecutorT& executor)
-    {
-        _history.move_forward(executor);
-    }
+    void move_forward(ExecutorT& executor) { _ui.move_forward(_history, executor); }
     template<typename ReverterT>
     requires Reverter<ReverterT, CommandT>
-    void move_backward(ReverterT& reverter)
-    {
-        _history.move_backward(reverter);
-    }
+    void move_backward(ReverterT& reverter) { _ui.move_backward(_history, reverter); }
     // ---End of boilerplate---
 
 private:
