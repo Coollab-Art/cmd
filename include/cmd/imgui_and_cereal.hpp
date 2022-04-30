@@ -10,7 +10,7 @@ struct MaxSavedSizeWidget {
     size_t uncommited_max_saved_size{};
 
     template<Command CommandT>
-    auto imgui(SerializationForHistory& truc) -> bool
+    auto imgui(SerializationForHistory& serializer) -> bool
     {
         ImGui::Text("History saved size");
         internal::imgui_help_marker(
@@ -18,15 +18,15 @@ struct MaxSavedSizeWidget {
             "so that upon reopening it you can still undo the things you did the last time.");
         const auto res = internal::imgui_input_history_size<CommandT>(
             &uncommited_max_saved_size,
-            truc._max_saved_size,
+            serializer.max_saved_size,
             1782167841);
         if (res.is_item_deactivated_after_edit)
         {
-            truc._max_saved_size = uncommited_max_saved_size;
+            serializer.max_saved_size = uncommited_max_saved_size;
         }
         if (!res.is_item_active) // Sync with the current max_size if we are not editing // Must be after the check for IsItemDeactivatedAfterEdit() otherwise the value can't be set properly when we finish editing
         {
-            uncommited_max_saved_size = truc._max_saved_size;
+            uncommited_max_saved_size = serializer.max_saved_size;
         }
         return res.is_item_deactivated_after_edit;
     }

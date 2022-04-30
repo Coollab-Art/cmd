@@ -64,20 +64,20 @@ inline auto imgui_input_history_size(size_t* value, size_t previous_value, int u
 } // namespace internal
 
 struct UiForHistory {
-    std::chrono::steady_clock::time_point _last_push_date{std::chrono::steady_clock::now()};
-    size_t                                _uncommited_max_size{};
+    std::chrono::steady_clock::time_point last_push_date{std::chrono::steady_clock::now()};
+    size_t                                uncommited_max_size{};
 
     template<Command CommandT>
     void push(History<CommandT>& history, const CommandT& command)
     {
-        _last_push_date = std::chrono::steady_clock::now();
+        last_push_date = std::chrono::steady_clock::now();
         history.push(command);
     }
 
     template<Command CommandT>
     void push(History<CommandT>& history, CommandT&& command)
     {
-        _last_push_date = std::chrono::steady_clock::now();
+        last_push_date = std::chrono::steady_clock::now();
         history.push(std::move(command));
     }
 
@@ -114,18 +114,18 @@ struct UiForHistory {
             "This is how far you can go back in the history, "
             "i.e. the number of undo you can perform.");
         const auto res = internal::imgui_input_history_size<CommandT>(
-            &_uncommited_max_size,
+            &uncommited_max_size,
             history.max_size(),
             1354321);
         if (res.is_item_deactivated_after_edit)
         {
-            history.set_max_size(_uncommited_max_size);
+            history.set_max_size(uncommited_max_size);
         }
         if (!res.is_item_active) // Sync with the current max_size if we are not editing // Must be after the check for IsItemDeactivatedAfterEdit() otherwise the value can't be set properly when we finish editing
         {
-            _uncommited_max_size = history.max_size();
+            uncommited_max_size = history.max_size();
         }
-        if (_uncommited_max_size < history.size())
+        if (uncommited_max_size < history.size())
         {
             ImGui::TextColored({1.f, 1.f, 0.f, 1.f},
                                "Some commits will be erased because you are reducing the size of the history!\nThe current size is %lld.",
@@ -134,7 +134,7 @@ struct UiForHistory {
         return res.is_item_deactivated_after_edit;
     }
 
-    auto time_since_last_push() const { return std::chrono::steady_clock::now() - _last_push_date; }
+    auto time_since_last_push() const { return std::chrono::steady_clock::now() - last_push_date; }
 };
 
 template<Command CommandT>

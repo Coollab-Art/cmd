@@ -7,23 +7,23 @@
 namespace cmd {
 
 struct SerializationForHistory {
-    size_t _max_saved_size{100};
+    size_t max_saved_size{100};
 
     template<class Archive, Command CommandT>
     void save(Archive& archive, const History<CommandT>& history) const
     {
-        auto copy = history.clone();  // We make a copy because we don't want to shrink the actual history,
-        copy.shrink(_max_saved_size); // in case it is still used even after being serialized
-                                      // TODO(JF) performance could be improved by only copying the commits that we want to serialize. Currently we copy all the commits and then discard many of them in shrink()
+        auto copy = history.clone(); // We make a copy because we don't want to shrink the actual history,
+        copy.shrink(max_saved_size); // in case it is still used even after being serialized
+                                     // TODO(JF) performance could be improved by only copying the commits that we want to serialize. Currently we copy all the commits and then discard many of them in shrink()
         archive(cereal::make_nvp("History", copy),
-                cereal::make_nvp("Max saved size", _max_saved_size));
+                cereal::make_nvp("Max saved size", max_saved_size));
     }
 
     template<class Archive, Command CommandT>
     void load(Archive& archive, History<CommandT>& history)
     {
         archive(history,
-                _max_saved_size);
+                max_saved_size);
     }
 };
 
