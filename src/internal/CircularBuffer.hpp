@@ -13,8 +13,7 @@ public:
 
     explicit CircularBuffer(size_t max_size)
         : _max_size{max_size}
-    {
-    }
+    {}
 
     void push_back(const T& t)
     {
@@ -67,28 +66,34 @@ private:
 
     void shrink_left()
     {
-        while (_container.size() > _max_size) {
+        while (_container.size() > _max_size)
+        {
             _container.pop_front();
         }
     }
 
     void shrink_while_preserving(iterator iterator_to_preserve)
     {
-        if (iterator_to_preserve == _container.end()) {
+        if (iterator_to_preserve == _container.end())
+        {
             shrink_left();
         }
-        else {
+        else
+        {
             if (_max_size == 0) // we need to be able to assume that _max_size > 0 in the else branch
             {
                 _container.clear();
             }
-            else {
-                while (_container.size() > _max_size) {
+            else
+            {
+                while (_container.size() > _max_size)
+                {
                     if (iterator_to_preserve != iterator_to_last_element()) // we know that _max_size > 0 so it is safe to call iterator_to_last_element()
                     {
                         _container.pop_back();
                     }
-                    else {
+                    else
+                    {
                         _container.pop_front();
                     }
                 }

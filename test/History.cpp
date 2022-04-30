@@ -2,11 +2,8 @@
 #include <doctest/doctest.h>
 #include <cmd/cmd.hpp>
 
-struct Command_SayHello {
-};
-
-struct Command_SayWorld {
-};
+struct Command_SayHello {};
+struct Command_SayWorld {};
 
 class Executor {
 public:

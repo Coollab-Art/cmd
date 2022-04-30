@@ -13,15 +13,16 @@ class History {
 public:
     explicit History(size_t max_size = 1000)
         : _commands{max_size}
-    {
-    }
+    {}
 
     template<typename ExecutorT>
     requires Executor<ExecutorT, CommandT>
     void move_forward(ExecutorT& executor)
     {
-        if (_next_command_to_execute) {
-            if (*_next_command_to_execute != _commands.end()) {
+        if (_next_command_to_execute)
+        {
+            if (*_next_command_to_execute != _commands.end())
+            {
                 executor.execute(**_next_command_to_execute); // If execute throws, then _next_command_to_execute won't be modified and that's what we want because the exception means that the command couldn't be applied
                 (*_next_command_to_execute)++;
             }
@@ -32,8 +33,10 @@ public:
     requires Reverter<ReverterT, CommandT>
     void move_backward(ReverterT& reverter)
     {
-        if (_next_command_to_execute) {
-            if (*_next_command_to_execute != _commands.begin()) {
+        if (_next_command_to_execute)
+        {
+            if (*_next_command_to_execute != _commands.begin())
+            {
                 reverter.revert(*std::prev(*_next_command_to_execute)); // If revert throws, then _next_command_to_execute won't be modified and that's what we want because the exception means that the command couldn't be reverted
                 (*_next_command_to_execute)--;
             }
@@ -62,14 +65,17 @@ public:
     /// NB: this choice was done because it was the simplest to implement, but we could consider adding other policies of which commits to keep.
     void set_max_size(size_t new_max_size)
     {
-        if (_next_command_to_execute) {
+        if (_next_command_to_execute)
+        {
             _commands.set_max_size_and_preserve_given_iterator(new_max_size,
                                                                *_next_command_to_execute);
-            if (new_max_size == 0) {
+            if (new_max_size == 0)
+            {
                 _next_command_to_execute.reset();
             }
         }
-        else {
+        else
+        {
             _commands.set_max_size(new_max_size);
         }
     }
@@ -82,13 +88,16 @@ public:
     // Exposed for serialization purposes. Don't use this unless you have a really good reason to.
     void unsafe_set_next_command_to_execute(std::optional<size_t> index)
     {
-        if (index) {
+        if (index)
+        {
             _next_command_to_execute = _commands.begin();
-            for (size_t i = 0; i < *index; ++i) {
+            for (size_t i = 0; i < *index; ++i)
+            {
                 (*_next_command_to_execute)++;
             }
         }
-        else {
+        else
+        {
             _next_command_to_execute.reset();
         }
     }
@@ -96,14 +105,17 @@ public:
     // Exposed for serialization purposes. Don't use this unless you have a really good reason to.
     auto unsafe_get_next_command_to_execute() const -> std::optional<size_t>
     {
-        if (_next_command_to_execute) {
+        if (_next_command_to_execute)
+        {
             size_t dist{0};
-            for (auto it = _commands.begin(); it != *_next_command_to_execute; ++it) {
+            for (auto it = _commands.begin(); it != *_next_command_to_execute; ++it)
+            {
                 ++dist;
             }
             return dist;
         }
-        else {
+        else
+        {
             return std::nullopt;
         }
     }
@@ -112,7 +124,8 @@ private:
     template<typename T>
     void push_impl(T&& command)
     {
-        if (_next_command_to_execute) {
+        if (_next_command_to_execute)
+        {
             _commands.erase_all_starting_at(*_next_command_to_execute);
         }
         _commands.push_back(std::forward<T>(command));
