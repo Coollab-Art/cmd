@@ -26,7 +26,7 @@ auto size_as_string(float multiplier) -> std::string
 template<Command CommandT>
 class HistoryWithUi : public History<CommandT> {
 public:
-    explicit HistoryWithUi(size_t max_size)
+    explicit HistoryWithUi(size_t max_size = 1000)
         : History<CommandT>{max_size}
         , _uncommited_max_size{max_size}
     {}
