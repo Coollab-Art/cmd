@@ -66,10 +66,10 @@ public:
         }
     }
 
-    auto imgui_max_size(const char* label = "Max size") -> bool
+    auto imgui_max_size() -> bool
     {
         static_assert(sizeof(_uncommited_max_size) == 8, "The ImGui widget expects a u64 integer");
-        ImGui::Text("%s", label);
+        ImGui::Text("Maximum history size");
         ImGui::PushID(1354321);
         ImGui::SetNextItemWidth(12.f + ImGui::CalcTextSize(std::to_string(_uncommited_max_size).c_str()).x); // Adapt the widget size to exactly fit the text input
         ImGui::InputScalar("", ImGuiDataType_U64, &_uncommited_max_size);
