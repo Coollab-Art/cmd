@@ -21,6 +21,46 @@ auto size_as_string(float multiplier) -> std::string
     return stream.str();
 }
 
+inline void imgui_help_marker(const char* text)
+{
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered())
+    {
+        ImGui::BeginTooltip();
+        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+        ImGui::TextUnformatted(text);
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+}
+
+struct InputResult {
+    bool is_item_deactivated_after_edit;
+    bool is_item_active;
+};
+
+template<Command CommandT>
+inline auto imgui_input_history_size(size_t* value, size_t previous_value, int uuid)
+{
+    static_assert(sizeof(size_t) == 8, "The ImGui widget expects a u64 integer");
+    ImGui::PushID(uuid);
+    ImGui::SetNextItemWidth(12.f + ImGui::CalcTextSize(std::to_string(*value).c_str()).x); // Adapt the widget size to exactly fit the text input
+    ImGui::InputScalar("", ImGuiDataType_U64, value);
+    ImGui::PopID();
+    const auto ret = InputResult{
+        .is_item_deactivated_after_edit = ImGui::IsItemDeactivatedAfterEdit(),
+        .is_item_active                 = ImGui::IsItemActive(),
+    };
+    ImGui::SameLine();
+    ImGui::Text("commits (%s)", internal::size_as_string<CommandT>(static_cast<float>(*value)).c_str());
+    if (*value != previous_value)
+    {
+        ImGui::TextDisabled("Previously: %lld", previous_value);
+    }
+    return ret;
+}
+
 } // namespace internal
 
 struct UiForHistory {
@@ -69,32 +109,21 @@ struct UiForHistory {
     template<Command CommandT>
     auto imgui_max_size(History<CommandT>& history) -> bool
     {
-        static_assert(sizeof(_uncommited_max_size) == 8, "The ImGui widget expects a u64 integer");
-        ImGui::Text("Maximum history size");
-        ImGui::PushID(1354321);
-        ImGui::SetNextItemWidth(12.f + ImGui::CalcTextSize(std::to_string(_uncommited_max_size).c_str()).x); // Adapt the widget size to exactly fit the text input
-        ImGui::InputScalar("", ImGuiDataType_U64, &_uncommited_max_size);
-        const bool has_changed_max_size = [&]() {
-            if (ImGui::IsItemDeactivatedAfterEdit())
-            {
-                history.set_max_size(_uncommited_max_size);
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }();
-        if (!ImGui::IsItemActive()) // Sync with the current max_size if we are not editing // Must be after the check for IsItemDeactivatedAfterEdit() otherwise the value can't be set properly when we finish editing
+        ImGui::Text("History maximum size");
+        internal::imgui_help_marker(
+            "This is how far you can go back in the history, "
+            "i.e. the number of undo you can perform.");
+        const auto res = internal::imgui_input_history_size<CommandT>(
+            &_uncommited_max_size,
+            history.max_size(),
+            1354321);
+        if (res.is_item_deactivated_after_edit)
+        {
+            history.set_max_size(_uncommited_max_size);
+        }
+        if (!res.is_item_active) // Sync with the current max_size if we are not editing // Must be after the check for IsItemDeactivatedAfterEdit() otherwise the value can't be set properly when we finish editing
         {
             _uncommited_max_size = history.max_size();
-        }
-        ImGui::PopID();
-        ImGui::SameLine();
-        ImGui::Text("commits (%s)", internal::size_as_string<CommandT>(static_cast<float>(_uncommited_max_size)).c_str());
-        if (_uncommited_max_size != history.max_size())
-        {
-            ImGui::TextDisabled("Previously: %lld", history.max_size());
         }
         if (_uncommited_max_size < history.size())
         {
@@ -102,7 +131,7 @@ struct UiForHistory {
                                "Some commits will be erased because you are reducing the size of the history!\nThe current size is %lld.",
                                history.size());
         }
-        return has_changed_max_size;
+        return res.is_item_deactivated_after_edit;
     }
 
     auto time_since_last_push() const { return std::chrono::steady_clock::now() - _last_push_date; }

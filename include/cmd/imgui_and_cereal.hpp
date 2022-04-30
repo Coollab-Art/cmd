@@ -6,6 +6,32 @@
 
 namespace cmd {
 
+struct MaxSavedSizeWidget {
+    size_t uncommited_max_saved_size{};
+
+    template<Command CommandT>
+    auto imgui(SerializationForHistory& truc) -> bool
+    {
+        ImGui::Text("History saved size");
+        internal::imgui_help_marker(
+            "When saving your project, a small part of the history is saved too, "
+            "so that upon reopening it you can still undo the things you did the last time.");
+        const auto res = internal::imgui_input_history_size<CommandT>(
+            &uncommited_max_saved_size,
+            truc._max_saved_size,
+            1782167841);
+        if (res.is_item_deactivated_after_edit)
+        {
+            truc._max_saved_size = uncommited_max_saved_size;
+        }
+        if (!res.is_item_active) // Sync with the current max_size if we are not editing // Must be after the check for IsItemDeactivatedAfterEdit() otherwise the value can't be set properly when we finish editing
+        {
+            uncommited_max_saved_size = truc._max_saved_size;
+        }
+        return res.is_item_deactivated_after_edit;
+    }
+};
+
 template<Command CommandT>
 class HistoryWithUiAndSerialization {
 public:
@@ -16,6 +42,7 @@ public:
     }
 
     auto imgui_max_size() -> bool { return _ui.imgui_max_size(_history); }
+    auto imgui_max_saved_size() -> bool { return _max_saved_size_widget.imgui<CommandT>(_serialization); }
 
     // ---Boilerplate to replicate the API of an History---
     explicit HistoryWithUiAndSerialization(size_t max_size = 1000)
@@ -33,6 +60,7 @@ public:
 private:
     History<CommandT>       _history;
     UiForHistory            _ui{};
+    MaxSavedSizeWidget      _max_saved_size_widget{};
     SerializationForHistory _serialization{};
 
 private:
