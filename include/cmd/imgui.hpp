@@ -111,12 +111,12 @@ struct UiForHistory {
         };
         for (auto it = commands.cbegin(); it != commands.cend(); ++it)
         {
-            ImGui::Text("%s", command_to_string(*it).c_str());
             if (it == history.current_command_iterator())
             {
                 draw_position_in_history();
                 drawn = true;
             }
+            ImGui::Text("%s", command_to_string(*it).c_str());
         }
         if (!drawn)
         {
