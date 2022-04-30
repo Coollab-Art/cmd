@@ -1,9 +1,27 @@
 #pragma once
 
 #include <chrono>
+#include <sstream>
+#include <string>
 #include "cmd.hpp"
 
 namespace cmd {
+
+namespace internal {
+
+template<typename T>
+auto size_as_string(float multiplier) -> std::string
+{
+    const auto total_size_in_megabytes = static_cast<float>(sizeof(T))
+                                         * multiplier
+                                         / 1'000'000.f;
+    // return std::format("{:.2f} Mb", total_size_in_megabytes); // Compilers don't support std::format() just yet :(
+    std::stringstream stream;
+    stream << std::fixed << std::setprecision(2) << total_size_in_megabytes << " Mb";
+    return stream.str();
+}
+
+} // namespace internal
 
 template<Command CommandT>
 class HistoryWithUi : public History<CommandT> {
@@ -52,6 +70,7 @@ public:
     {
         static_assert(sizeof(_uncommited_max_size) == 8, "The ImGui widget expects a u64 integer");
         ImGui::InputScalar(label, ImGuiDataType_U64, &_uncommited_max_size);
+        ImGui::Text("(%s)", internal::size_as_string<CommandT>(static_cast<float>(_uncommited_max_size)).c_str());
         if (ImGui::IsItemDeactivatedAfterEdit())
         {
             History<CommandT>::set_max_size(_uncommited_max_size);
