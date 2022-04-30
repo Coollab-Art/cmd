@@ -24,7 +24,6 @@ struct SerializationForHistory {
     {
         archive(history,
                 _max_saved_size);
-        // _history.unsafe_set_uncommited_max_size(_history.max_size());
     }
 };
 

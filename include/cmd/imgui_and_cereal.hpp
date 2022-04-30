@@ -19,8 +19,7 @@ public:
 
     // ---Boilerplate to replicate the API of an History---
     explicit HistoryWithUiAndSerialization(size_t max_size = 1000)
-        : _history{max_size}
-    {}
+        : _history{max_size} {}
     void push(const CommandT& command) { _ui.push(_history, command); }
     void push(CommandT&& command) { _ui.push(_history, std::move(command)); }
     template<typename ExecutorT>

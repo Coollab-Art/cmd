@@ -25,7 +25,7 @@ auto size_as_string(float multiplier) -> std::string
 
 struct UiForHistory {
     std::chrono::steady_clock::time_point _last_push_date{std::chrono::steady_clock::now()};
-    size_t                                _uncommited_max_size;
+    size_t                                _uncommited_max_size{};
 
     template<Command CommandT>
     void push(History<CommandT>& history, const CommandT& command)
@@ -41,7 +41,7 @@ struct UiForHistory {
         history.push(std::move(command));
     }
 
-    template<typename CommandToString, Command CommandT>
+    template<Command CommandT, typename CommandToString>
     void imgui_show(const History<CommandT>& history, CommandToString&& command_to_string)
     {
         const auto& commands = history.underlying_container();
@@ -117,20 +117,11 @@ public:
         _ui.imgui_show(_history, std::forward<CommandToString>(command_to_string));
     }
 
-    auto imgui_max_size() -> bool
-    {
-        return _ui.imgui_max_size(_history);
-    }
-
-    // auto max_saved_size() const -> size_t { return _max_saved_size; }
-
-    // Exposed for serialization purposes. Don't use this unless you have a really good reason to.
-    // void unsafe_set_uncommited_max_size(size_t size) { _uncommited_max_size = size; }
+    auto imgui_max_size() -> bool { return _ui.imgui_max_size(_history); }
 
     // ---Boilerplate to replicate the API of an History---
     explicit HistoryWithUi(size_t max_size = 1000)
-        : _history{max_size}
-    {}
+        : _history{max_size} {}
     void push(const CommandT& command) { _ui.push(_history, command); }
     void push(CommandT&& command) { _ui.push(_history, std::move(command)); }
     template<typename ExecutorT>
@@ -148,7 +139,6 @@ public:
     // ---End of boilerplate---
 
 private:
-    // size_t       _max_saved_size{5};
     History<CommandT> _history;
     UiForHistory      _ui{};
 };
