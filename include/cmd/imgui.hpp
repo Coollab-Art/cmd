@@ -73,7 +73,7 @@ public:
         ImGui::PushID(1354321);
         ImGui::SetNextItemWidth(12.f + ImGui::CalcTextSize(std::to_string(_uncommited_max_size).c_str()).x); // Adapt the widget size to exactly fit the text input
         ImGui::InputScalar("", ImGuiDataType_U64, &_uncommited_max_size);
-        const auto has_changed_max_size = [&]() {
+        const bool has_changed_max_size = [&]() {
             if (ImGui::IsItemDeactivatedAfterEdit())
             {
                 History<CommandT>::set_max_size(_uncommited_max_size);
@@ -84,6 +84,10 @@ public:
                 return false;
             }
         }();
+        if (!ImGui::IsItemActive()) // Sync with the current max_size if we are not editing // Must be after the check for IsItemDeactivatedAfterEdit() otherwise the value can't be set properly when we finish editing
+        {
+            _uncommited_max_size = History<CommandT>::max_size();
+        }
         ImGui::PopID();
         ImGui::SameLine();
         ImGui::Text("commits (%s)", internal::size_as_string<CommandT>(static_cast<float>(_uncommited_max_size)).c_str());
