@@ -24,7 +24,7 @@ concept Merger = requires(MergerT merger, CommandT command)
 {
     // clang-format off
     // clang-format doesn't know about concepts yet and messes up the syntax :-(
-    { merger.merge(command, command) } -> std::convertible_to<bool>;
+    { merger.merge(command, command) } -> std::convertible_to<std::optional<CommandT>>;
     // clang-format on
 };
 

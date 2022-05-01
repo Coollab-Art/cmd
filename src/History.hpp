@@ -161,7 +161,23 @@ private:
         {
             _commands.erase_all_starting_at(*_next_command_to_execute);
         }
-        _commands.push_back(std::forward<CommandType>(command));
+        if (!_commands.is_empty())
+        {
+            const auto merged = merger.merge(_commands.back(), command);
+            if (merged)
+            {
+                _commands.pop_back();
+                _commands.push_back(*merged);
+            }
+            else
+            {
+                _commands.push_back(std::forward<CommandType>(command));
+            }
+        }
+        else
+        {
+            _commands.push_back(std::forward<CommandType>(command));
+        }
         _next_command_to_execute = _commands.end();
     }
 

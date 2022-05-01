@@ -58,6 +58,9 @@ public:
     auto begin() const { return _container.begin(); }
     auto end() { return _container.end(); }
 
+    auto back() { return _container.back(); }
+    void pop_back() { _container.pop_back(); }
+
     auto is_empty() const -> bool { return _container.empty(); }
 
     void erase_all_starting_at(iterator it)
