@@ -41,16 +41,11 @@ public:
     void push(CommandT&& command, const MergerT& merger) { _history.push(std::move(command), merger); }
     template<typename ExecutorT>
     requires Executor<ExecutorT, CommandT>
-    void move_forward(ExecutorT& executor)
-    {
-        _history.move_forward(executor);
-    }
+    void move_forward(ExecutorT& executor) { _history.move_forward(executor); }
     template<typename ReverterT>
     requires Reverter<ReverterT, CommandT>
-    void move_backward(ReverterT& reverter)
-    {
-        _history.move_backward(reverter);
-    }
+    void move_backward(ReverterT& reverter) { _history.move_backward(reverter); }
+    void dont_merge_next_command() const { _history.dont_merge_next_command(); }
     // ---End of boilerplate---
 
 private:

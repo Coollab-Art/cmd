@@ -38,6 +38,7 @@ public:
                 (*_next_command_to_execute)++;
             }
         }
+        _can_try_to_merge_next_command = false;
     }
 
     template<typename ReverterT>
@@ -52,6 +53,7 @@ public:
                 (*_next_command_to_execute)--;
             }
         }
+        _can_try_to_merge_next_command = false;
     }
 
     template<typename MergerT>
@@ -67,6 +69,9 @@ public:
     {
         push_impl(std::move(command), merger);
     }
+
+    /// The history is eager to merge commands: it will try to do it unless you explicitly tell it not to
+    void dont_merge_next_command() const { _can_try_to_merge_next_command = false; }
 
     auto size() const -> size_t { return _commands.size(); }
 
@@ -161,7 +166,8 @@ private:
         {
             _commands.erase_all_starting_at(*_next_command_to_execute);
         }
-        if (!_commands.is_empty())
+        if (!_commands.is_empty()
+            && _can_try_to_merge_next_command)
         {
             const auto merged = merger.merge(_commands.back(), command);
             if (merged)
@@ -178,7 +184,8 @@ private:
         {
             _commands.push_back(std::forward<CommandType>(command));
         }
-        _next_command_to_execute = _commands.end();
+        _next_command_to_execute       = _commands.end();
+        _can_try_to_merge_next_command = true;
     }
 
     History(const History&) = default;            // Use `clone()` instead
@@ -187,6 +194,7 @@ private:
 private:
     internal::CircularBuffer<CommandT>                                   _commands;
     std::optional<typename internal::CircularBuffer<CommandT>::iterator> _next_command_to_execute{};
+    mutable bool                                                         _can_try_to_merge_next_command{false};
 };
 
 } // namespace cmd

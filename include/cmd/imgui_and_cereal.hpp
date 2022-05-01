@@ -59,6 +59,7 @@ public:
     template<typename ReverterT>
     requires Reverter<ReverterT, CommandT>
     void move_backward(ReverterT& reverter) { _ui.move_backward(_history, reverter); }
+    void dont_merge_next_command() const { _history.dont_merge_next_command(); }
     // ---End of boilerplate---
 
 private:

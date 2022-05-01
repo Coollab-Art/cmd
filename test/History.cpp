@@ -53,7 +53,7 @@ public:
         const auto command = Command_SetInt{.new_value      = n,
                                             .previous_value = _value};
         _value             = n;
-        history.push(command);
+        history.push(command, _merger);
     }
 
     void execute(Command_SetInt command)
@@ -68,6 +68,12 @@ public:
 
 private:
     int _value = 0;
+    struct Merger {
+        auto merge(Command_SetInt, Command_SetInt) const -> std::optional<Command_SetInt>
+        {
+            return std::nullopt;
+        }
+    } _merger;
 };
 
 TEST_CASE("History")
@@ -176,5 +182,46 @@ TEST_CASE("History")
         REQUIRE(executor.value() == 1);
         history.move_forward(executor); // no-op
         REQUIRE(executor.value() == 1);
+    }
+}
+
+struct Command_AlwaysMerge {
+};
+
+struct Executor_AlwaysMerge {
+    void execute(Command_AlwaysMerge)
+    {
+    }
+
+    void revert(Command_AlwaysMerge)
+    {
+    }
+};
+
+struct Merger_AlwaysMerge {
+    static auto merge(Command_AlwaysMerge, Command_AlwaysMerge) -> std::optional<Command_AlwaysMerge>
+    {
+        return Command_AlwaysMerge{};
+    }
+};
+
+TEST_CASE("Merging commands in an History")
+{
+    auto       history  = cmd::History<Command_AlwaysMerge>{};
+    auto       executor = Executor_AlwaysMerge{};
+    const auto merger   = Merger_AlwaysMerge{};
+
+    SUBCASE("Commands that are not the one at the end of the history are never merged")
+    {
+        history.push({}, merger);
+        history.dont_merge_next_command();
+        history.push({}, merger);
+        history.dont_merge_next_command();
+        history.push({}, merger);
+        REQUIRE(history.size() == 3);
+        history.move_backward(executor); // We will discard two commits when pushing
+        history.move_backward(executor); // and add one (unless it gets merged which souldn't happen)
+        history.push({}, merger);
+        REQUIRE(history.size() == 2);
     }
 }
