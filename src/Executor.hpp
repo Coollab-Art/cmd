@@ -19,4 +19,13 @@ concept Reverter = requires(ReverterT reverter, CommandT command)
     reverter.revert(command);
 };
 
+template<typename MergerT, typename CommandT>
+concept Merger = requires(MergerT merger, CommandT command)
+{
+    // clang-format off
+    // clang-format doesn't know about concepts yet and messes up the syntax :-(
+    { merger.merge(command, command) } -> std::convertible_to<bool>;
+    // clang-format on
+};
+
 } // namespace cmd

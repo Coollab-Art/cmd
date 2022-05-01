@@ -33,8 +33,12 @@ public:
     // ---Boilerplate to replicate the API of an History---
     explicit HistoryWithSerialization(size_t max_size = 1000)
         : _history{max_size} {}
-    void push(const CommandT& command) { _history.push(command); }
-    void push(CommandT&& command) { _history.push(std::move(command)); }
+    template<typename MergerT>
+    requires Merger<MergerT, CommandT>
+    void push(const CommandT& command, const MergerT& merger) { _history.push(command, merger); }
+    template<typename MergerT>
+    requires Merger<MergerT, CommandT>
+    void push(CommandT&& command, const MergerT& merger) { _history.push(std::move(command), merger); }
     template<typename ExecutorT>
     requires Executor<ExecutorT, CommandT>
     void move_forward(ExecutorT& executor)

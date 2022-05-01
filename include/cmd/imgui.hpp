@@ -66,18 +66,20 @@ struct UiForHistory {
     bool   should_scroll_to_current_commit{true};
     size_t uncommited_max_size{};
 
-    template<Command CommandT>
-    void push(History<CommandT>& history, const CommandT& command)
+    template<Command CommandT, typename MergerT>
+    requires Merger<MergerT, CommandT>
+    void push(History<CommandT>& history, const CommandT& command, const MergerT& merger)
     {
         should_scroll_to_current_commit = true;
-        history.push(command);
+        history.push(command, merger);
     }
 
-    template<Command CommandT>
-    void push(History<CommandT>& history, CommandT&& command)
+    template<Command CommandT, typename MergerT>
+    requires Merger<MergerT, CommandT>
+    void push(History<CommandT>& history, CommandT&& command, const MergerT& merger)
     {
         should_scroll_to_current_commit = true;
-        history.push(std::move(command));
+        history.push(std::move(command), merger);
     }
 
     template<Command CommandT, typename ExecutorT>
@@ -167,8 +169,12 @@ public:
     // ---Boilerplate to replicate the API of an History---
     explicit HistoryWithUi(size_t max_size = 1000)
         : _history{max_size} {}
-    void push(const CommandT& command) { _ui.push(_history, command); }
-    void push(CommandT&& command) { _ui.push(_history, std::move(command)); }
+    template<typename MergerT>
+    requires Merger<MergerT, CommandT>
+    void push(const CommandT& command, const MergerT& merger) { _ui.push(_history, command, merger); }
+    template<typename MergerT>
+    requires Merger<MergerT, CommandT>
+    void push(CommandT&& command, const MergerT& merger) { _ui.push(_history, std::move(command), merger); }
     template<typename ExecutorT>
     requires Executor<ExecutorT, CommandT>
     void move_forward(ExecutorT& executor) { _ui.move_forward(_history, executor); }

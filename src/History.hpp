@@ -54,14 +54,18 @@ public:
         }
     }
 
-    virtual void push(const CommandT& command)
+    template<typename MergerT>
+    requires Merger<MergerT, CommandT>
+    void push(const CommandT& command, const MergerT& merger)
     {
-        push_impl(command);
+        push_impl(command, merger);
     }
 
-    virtual void push(CommandT&& command)
+    template<typename MergerT>
+    requires Merger<MergerT, CommandT>
+    void push(CommandT&& command, const MergerT& merger)
     {
-        push_impl(std::move(command));
+        push_impl(std::move(command), merger);
     }
 
     auto size() const -> size_t { return _commands.size(); }
@@ -150,14 +154,14 @@ public:
     }
 
 private:
-    template<typename T>
-    void push_impl(T&& command)
+    template<typename CommandType, typename MergerType> // CommandType instead of CommandT to not override CommandT which is already the template parameter of the whole class; CommandT and CommandType need to be different otherwise perfect forwarding won't kick in
+    void push_impl(CommandType&& command, const MergerType& merger)
     {
         if (_next_command_to_execute)
         {
             _commands.erase_all_starting_at(*_next_command_to_execute);
         }
-        _commands.push_back(std::forward<T>(command));
+        _commands.push_back(std::forward<CommandType>(command));
         _next_command_to_execute = _commands.end();
     }
 
