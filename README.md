@@ -6,6 +6,8 @@
 
 ### Scripting
 
+Commands give a C API to your code: just structs with some data.
+
 ### Recording
 
 ### Testing
