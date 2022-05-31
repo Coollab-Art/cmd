@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iomanip>
 #include <sstream>
 #include <string>
 #include "cmd.hpp"
