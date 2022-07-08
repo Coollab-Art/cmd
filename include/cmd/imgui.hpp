@@ -56,7 +56,7 @@ inline auto imgui_input_history_size(size_t* value, size_t previous_value, int u
     ImGui::Text("commits (%s)", internal::size_as_string<CommandT>(static_cast<float>(*value)).c_str());
     if (*value != previous_value)
     {
-        ImGui::TextDisabled("Previously: %lld", previous_value);
+        ImGui::TextDisabled("Previously: %lu", previous_value);
     }
     return ret;
 }
@@ -149,7 +149,7 @@ struct UiForHistory {
         if (uncommited_max_size < history.size())
         {
             ImGui::TextColored({1.f, 1.f, 0.f, 1.f},
-                               "Some commits will be erased because you are reducing the size of the history!\nThe current size is %lld.",
+                               "Some commits will be erased because you are reducing the size of the history!\nThe current size is %lu.",
                                history.size());
         }
         return res.is_item_deactivated_after_edit;
