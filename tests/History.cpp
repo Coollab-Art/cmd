@@ -1,6 +1,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 #include <cmd/cmd.hpp>
+#include <optional>
 
 struct Command_SayHello {};
 struct Command_SayWorld {};
