@@ -37,6 +37,19 @@ and things that can send commands (the user interface, the history, the scriptin
 
 The *cmd* library provides utilities that rely on commands; you are responsible for implementing your command type, and we provide support for an history, scripting, and many more!
 
+## Including
+
+To add this library to your project, simply add those two lines to your *CMakeLists.txt*:
+```cmake
+add_subdirectory(path/to/cmd)
+target_link_libraries(${PROJECT_NAME} PRIVATE cmd::cmd)
+```
+
+Then include it as:
+```cpp
+#include <cmd/cmd.hpp>
+```
+
 ## Advantages
 
 ### History
@@ -50,3 +63,8 @@ Commands give a C API to your code: just structs with some data.
 ### Testing
 
 Since everything that is doable in your UI should correspond to a command in code, this makes integration tests easy: simply launch the corresponding commands to reproduce any user action.
+
+## Running the tests
+
+Simply use "tests/CMakeLists.txt" to generate a project, then run it.<br/>
+If you are using VSCode and the CMake extension, this project already contains a *.vscode/settings.json* that will use the right CMakeLists.txt automatically.
