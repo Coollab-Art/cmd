@@ -7,10 +7,21 @@ add_executable(${PROJECT_NAME}
 )
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 
+# Set warning level
 if (MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE /WX /W4)
+    target_compile_options(${PROJECT_NAME} PRIVATE /W4)
 else()
-    target_compile_options(${PROJECT_NAME} PRIVATE -Werror -Wall -Wextra -Wpedantic -pedantic-errors -Wconversion -Wsign-conversion)
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -pedantic-errors -Wconversion -Wsign-conversion)
+endif()
+
+# Maybe enable warnings as errors
+set(WARNINGS_AS_ERRORS_FOR_CMD OFF CACHE BOOL "ON iff you want to treat warnings as errors")
+if(WARNINGS_AS_ERRORS_FOR_CMD)
+    if(MSVC)
+        target_compile_options(${PROJECT_NAME} PRIVATE /WX)
+    else()
+        target_compile_options(${PROJECT_NAME} PRIVATE -Werror)
+    endif()
 endif()
 
 add_subdirectory(.. ${CMAKE_CURRENT_SOURCE_DIR}/build/cmd)
