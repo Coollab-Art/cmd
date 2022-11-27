@@ -1,4 +1,7 @@
 
 build/
 
+.vscode/
+
 tests/bin
+.cache
