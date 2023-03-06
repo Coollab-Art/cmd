@@ -12,12 +12,12 @@ namespace internal {
 template<typename T>
 auto size_as_string(float multiplier) -> std::string
 {
-    const auto total_size_in_megabytes = static_cast<float>(sizeof(T))
+    const auto total_size_in_kilobytes = static_cast<float>(sizeof(T))
                                          * multiplier
-                                         / 1'000'000.f;
+                                         / 1000.f;
     // return std::format("{:.2f} Mb", total_size_in_megabytes); // Compilers don't support std::format() just yet :(
     std::stringstream stream;
-    stream << std::fixed << std::setprecision(2) << total_size_in_megabytes << " Mb";
+    stream << std::fixed << std::setprecision(1) << total_size_in_kilobytes << " Kb";
     return stream.str();
 }
 
