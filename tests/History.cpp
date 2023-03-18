@@ -21,7 +21,7 @@ public:
 };
 
 template<typename Executor, typename Command>
-requires cmd::Executor<Executor, Command>
+    requires cmd::Executor<Executor, Command>
 void execute(Executor& executor, Command command)
 {
     executor.execute(command);
@@ -50,8 +50,7 @@ public:
 
     void set_value(int n, cmd::History<Command_SetInt>& history)
     {
-        const auto command = Command_SetInt{.new_value      = n,
-                                            .previous_value = _value};
+        const auto command = Command_SetInt{.new_value = n, .previous_value = _value};
         _value             = n;
         history.push(command, _merger);
     }

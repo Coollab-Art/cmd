@@ -15,19 +15,20 @@ public:
         : _commands{max_size}
     {}
 
-    History(History&&) noexcept = default;
+    History(History&&) noexcept            = default;
     History& operator=(History&&) noexcept = default;
 
     History clone() const
     {
         History copy{*this};
         copy.unsafe_set_next_command_to_execute( // To properly "copy" the iterator
-            this->unsafe_get_next_command_to_execute());
+            this->unsafe_get_next_command_to_execute()
+        );
         return copy;
     }
 
     template<typename ExecutorT>
-    requires Executor<ExecutorT, CommandT>
+        requires Executor<ExecutorT, CommandT>
     void move_forward(ExecutorT& executor)
     {
         if (_next_command_to_execute)
@@ -42,7 +43,7 @@ public:
     }
 
     template<typename ReverterT>
-    requires Reverter<ReverterT, CommandT>
+        requires Reverter<ReverterT, CommandT>
     void move_backward(ReverterT& reverter)
     {
         if (_next_command_to_execute)
@@ -57,14 +58,14 @@ public:
     }
 
     template<typename MergerT>
-    requires Merger<MergerT, CommandT>
+        requires Merger<MergerT, CommandT>
     void push(const CommandT& command, const MergerT& merger)
     {
         push_impl(command, merger);
     }
 
     template<typename MergerT>
-    requires Merger<MergerT, CommandT>
+        requires Merger<MergerT, CommandT>
     void push(CommandT&& command, const MergerT& merger)
     {
         push_impl(std::move(command), merger);
@@ -86,8 +87,7 @@ public:
     {
         if (_next_command_to_execute)
         {
-            _commands.set_max_size_and_preserve_given_iterator(new_max_size,
-                                                               *_next_command_to_execute);
+            _commands.set_max_size_and_preserve_given_iterator(new_max_size, *_next_command_to_execute);
             if (new_max_size == 0)
             {
                 _next_command_to_execute.reset();
@@ -104,8 +104,7 @@ public:
     {
         if (_next_command_to_execute)
         {
-            _commands.shrink_and_preserve_given_iterator(max_size,
-                                                         *_next_command_to_execute);
+            _commands.shrink_and_preserve_given_iterator(max_size, *_next_command_to_execute);
             if (max_size == 0)
             {
                 _next_command_to_execute.reset();
@@ -188,7 +187,7 @@ private:
         _can_try_to_merge_next_command = true;
     }
 
-    History(const History&) = default;            // Use `clone()` instead
+    History(const History&)            = default; // Use `clone()` instead
     History& operator=(const History&) = default; // if you want a copy of your history
 
 private:

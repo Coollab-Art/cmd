@@ -68,7 +68,7 @@ struct UiForHistory {
     size_t uncommited_max_size{};
 
     template<Command CommandT, typename MergerT>
-    requires Merger<MergerT, CommandT>
+        requires Merger<MergerT, CommandT>
     void push(History<CommandT>& history, const CommandT& command, const MergerT& merger)
     {
         should_scroll_to_current_commit = true;
@@ -76,7 +76,7 @@ struct UiForHistory {
     }
 
     template<Command CommandT, typename MergerT>
-    requires Merger<MergerT, CommandT>
+        requires Merger<MergerT, CommandT>
     void push(History<CommandT>& history, CommandT&& command, const MergerT& merger)
     {
         should_scroll_to_current_commit = true;
@@ -84,7 +84,7 @@ struct UiForHistory {
     }
 
     template<Command CommandT, typename ExecutorT>
-    requires Executor<ExecutorT, CommandT>
+        requires Executor<ExecutorT, CommandT>
     void move_forward(History<CommandT>& history, ExecutorT& executor)
     {
         should_scroll_to_current_commit = true;
@@ -92,7 +92,7 @@ struct UiForHistory {
     }
 
     template<Command CommandT, typename ReverterT>
-    requires Reverter<ReverterT, CommandT>
+        requires Reverter<ReverterT, CommandT>
     void move_backward(History<CommandT>& history, ReverterT& reverter)
     {
         should_scroll_to_current_commit = true;
@@ -133,11 +133,13 @@ struct UiForHistory {
         ImGui::Text("History maximum size");
         internal::imgui_help_marker(
             "This is how far you can go back in the history, "
-            "i.e. the number of undo you can perform.");
+            "i.e. the number of undo you can perform."
+        );
         const auto res = internal::imgui_input_history_size<CommandT>(
             &uncommited_max_size,
             history.max_size(),
-            1354321);
+            1354321
+        );
         if (res.is_item_deactivated_after_edit)
         {
             history.set_max_size(uncommited_max_size);
@@ -148,9 +150,11 @@ struct UiForHistory {
         }
         if (uncommited_max_size < history.size())
         {
-            ImGui::TextColored({1.f, 1.f, 0.f, 1.f},
-                               "Some commits will be erased because you are reducing the size of the history!\nThe current size is %zu.",
-                               history.size());
+            ImGui::TextColored(
+                {1.f, 1.f, 0.f, 1.f},
+                "Some commits will be erased because you are reducing the size of the history!\nThe current size is %zu.",
+                history.size()
+            );
         }
         return res.is_item_deactivated_after_edit;
     }
@@ -171,17 +175,29 @@ public:
     explicit HistoryWithUi(size_t max_size = 1000)
         : _history{max_size} {}
     template<typename MergerT>
-    requires Merger<MergerT, CommandT>
-    void push(const CommandT& command, const MergerT& merger) { _ui.push(_history, command, merger); }
+        requires Merger<MergerT, CommandT>
+    void push(const CommandT& command, const MergerT& merger)
+    {
+        _ui.push(_history, command, merger);
+    }
     template<typename MergerT>
-    requires Merger<MergerT, CommandT>
-    void push(CommandT&& command, const MergerT& merger) { _ui.push(_history, std::move(command), merger); }
+        requires Merger<MergerT, CommandT>
+    void push(CommandT&& command, const MergerT& merger)
+    {
+        _ui.push(_history, std::move(command), merger);
+    }
     template<typename ExecutorT>
-    requires Executor<ExecutorT, CommandT>
-    void move_forward(ExecutorT& executor) { _ui.move_forward(_history, executor); }
+        requires Executor<ExecutorT, CommandT>
+    void move_forward(ExecutorT& executor)
+    {
+        _ui.move_forward(_history, executor);
+    }
     template<typename ReverterT>
-    requires Reverter<ReverterT, CommandT>
-    void move_backward(ReverterT& reverter) { _ui.move_backward(_history, reverter); }
+        requires Reverter<ReverterT, CommandT>
+    void move_backward(ReverterT& reverter)
+    {
+        _ui.move_backward(_history, reverter);
+    }
     void dont_merge_next_command() const { _history.dont_merge_next_command(); }
     // ---End of boilerplate---
 

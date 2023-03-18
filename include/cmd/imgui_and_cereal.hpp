@@ -15,11 +15,13 @@ struct MaxSavedSizeWidget {
         ImGui::Text("History saved size");
         internal::imgui_help_marker(
             "When saving your project, a small part of the history is saved too, "
-            "so that upon reopening it you can still undo the things you did the last time.");
+            "so that upon reopening it you can still undo the things you did the last time."
+        );
         const auto res = internal::imgui_input_history_size<CommandT>(
             &uncommited_max_saved_size,
             serializer.max_saved_size,
-            1782167841);
+            1782167841
+        );
         if (res.is_item_deactivated_after_edit)
         {
             serializer.max_saved_size = uncommited_max_saved_size;
@@ -48,17 +50,29 @@ public:
     explicit HistoryWithUiAndSerialization(size_t max_size = 1000)
         : _history{max_size} {}
     template<typename MergerT>
-    requires Merger<MergerT, CommandT>
-    void push(const CommandT& command, const MergerT& merger) { _ui.push(_history, command, merger); }
+        requires Merger<MergerT, CommandT>
+    void push(const CommandT& command, const MergerT& merger)
+    {
+        _ui.push(_history, command, merger);
+    }
     template<typename MergerT>
-    requires Merger<MergerT, CommandT>
-    void push(CommandT&& command, const MergerT& merger) { _ui.push(_history, std::move(command), merger); }
+        requires Merger<MergerT, CommandT>
+    void push(CommandT&& command, const MergerT& merger)
+    {
+        _ui.push(_history, std::move(command), merger);
+    }
     template<typename ExecutorT>
-    requires Executor<ExecutorT, CommandT>
-    void move_forward(ExecutorT& executor) { _ui.move_forward(_history, executor); }
+        requires Executor<ExecutorT, CommandT>
+    void move_forward(ExecutorT& executor)
+    {
+        _ui.move_forward(_history, executor);
+    }
     template<typename ReverterT>
-    requires Reverter<ReverterT, CommandT>
-    void move_backward(ReverterT& reverter) { _ui.move_backward(_history, reverter); }
+        requires Reverter<ReverterT, CommandT>
+    void move_backward(ReverterT& reverter)
+    {
+        _ui.move_backward(_history, reverter);
+    }
     void dont_merge_next_command() const { _history.dont_merge_next_command(); }
     // ---End of boilerplate---
 
