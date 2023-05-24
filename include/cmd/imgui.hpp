@@ -128,10 +128,10 @@ struct UiForHistory {
     }
 
     template<Command CommandT>
-    auto imgui_max_size(History<CommandT>& history) -> bool
+    auto imgui_max_size(History<CommandT>& history, std::function<void(const char*)> help_marker) -> bool
     {
         ImGui::Text("History maximum size");
-        internal::imgui_help_marker(
+        help_marker(
             "This is how far you can go back in the history, "
             "i.e. the number of undo you can perform."
         );

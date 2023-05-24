@@ -10,10 +10,10 @@ struct MaxSavedSizeWidget {
     size_t uncommited_max_saved_size{};
 
     template<Command CommandT>
-    auto imgui(SerializationForHistory& serializer) -> bool
+    auto imgui(SerializationForHistory& serializer, std::function<void(const char*)> help_marker) -> bool
     {
         ImGui::Text("History saved size");
-        internal::imgui_help_marker(
+        help_marker(
             "When saving your project, a small part of the history is saved too, "
             "so that upon reopening it you can still undo the things you did the last time."
         );
@@ -43,8 +43,8 @@ public:
         _ui.imgui_show(_history, std::forward<CommandToString>(command_to_string));
     }
 
-    auto imgui_max_size() -> bool { return _ui.imgui_max_size(_history); }
-    auto imgui_max_saved_size() -> bool { return _max_saved_size_widget.imgui<CommandT>(_serialization); }
+    auto imgui_max_size(std::function<void(const char*)> help_marker = &internal::imgui_help_marker) -> bool { return _ui.imgui_max_size(_history, help_marker); }
+    auto imgui_max_saved_size(std::function<void(const char*)> help_marker = &internal::imgui_help_marker) -> bool { return _max_saved_size_widget.imgui<CommandT>(_serialization, help_marker); }
 
     // ---Boilerplate to replicate the API of an History---
     explicit HistoryWithUiAndSerialization(size_t max_size = 1000)
