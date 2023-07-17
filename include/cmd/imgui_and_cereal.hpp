@@ -9,8 +9,8 @@ namespace cmd {
 struct MaxSavedSizeWidget {
     size_t uncommited_max_saved_size{};
 
-    template<Command CommandT>
-    auto imgui(SerializationForHistory& serializer, std::function<void(const char*)> help_marker) -> bool
+    template<CommandC CommandT>
+    auto imgui(SerializationForHistory& serializer, std::function<void(const char*)> const& help_marker) -> bool
     {
         ImGui::Text("History saved size");
         help_marker(
@@ -34,7 +34,7 @@ struct MaxSavedSizeWidget {
     }
 };
 
-template<Command CommandT>
+template<CommandC CommandT>
 class HistoryWithUiAndSerialization {
 public:
     template<typename CommandToString>
@@ -50,25 +50,25 @@ public:
     explicit HistoryWithUiAndSerialization(size_t max_size = 1000)
         : _history{max_size} {}
     template<typename MergerT>
-        requires Merger<MergerT, CommandT>
+        requires MergerC<MergerT, CommandT>
     void push(const CommandT& command, const MergerT& merger)
     {
         _ui.push(_history, command, merger);
     }
     template<typename MergerT>
-        requires Merger<MergerT, CommandT>
+        requires MergerC<MergerT, CommandT>
     void push(CommandT&& command, const MergerT& merger)
     {
         _ui.push(_history, std::move(command), merger);
     }
     template<typename ExecutorT>
-        requires Executor<ExecutorT, CommandT>
+        requires ExecutorC<ExecutorT, CommandT>
     void move_forward(ExecutorT& executor)
     {
         _ui.move_forward(_history, executor);
     }
     template<typename ReverterT>
-        requires Reverter<ReverterT, CommandT>
+        requires ReverterC<ReverterT, CommandT>
     void move_backward(ReverterT& reverter)
     {
         _ui.move_backward(_history, reverter);

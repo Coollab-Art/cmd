@@ -40,7 +40,7 @@ struct InputResult {
     bool is_item_active;
 };
 
-template<Command CommandT>
+template<CommandC CommandT>
 inline auto imgui_input_history_size(size_t* value, size_t previous_value, int uuid)
 {
     static_assert(sizeof(size_t) == 8, "The ImGui widget expects a u64 integer");
@@ -67,39 +67,39 @@ struct UiForHistory {
     bool   should_scroll_to_current_commit{true};
     size_t uncommited_max_size{};
 
-    template<Command CommandT, typename MergerT>
-        requires Merger<MergerT, CommandT>
+    template<CommandC CommandT, typename MergerT>
+        requires MergerC<MergerT, CommandT>
     void push(History<CommandT>& history, const CommandT& command, const MergerT& merger)
     {
         should_scroll_to_current_commit = true;
         history.push(command, merger);
     }
 
-    template<Command CommandT, typename MergerT>
-        requires Merger<MergerT, CommandT>
+    template<CommandC CommandT, typename MergerT>
+        requires MergerC<MergerT, CommandT>
     void push(History<CommandT>& history, CommandT&& command, const MergerT& merger)
     {
         should_scroll_to_current_commit = true;
         history.push(std::move(command), merger);
     }
 
-    template<Command CommandT, typename ExecutorT>
-        requires Executor<ExecutorT, CommandT>
+    template<CommandC CommandT, typename ExecutorT>
+        requires ExecutorC<ExecutorT, CommandT>
     void move_forward(History<CommandT>& history, ExecutorT& executor)
     {
         should_scroll_to_current_commit = true;
         history.move_forward(executor);
     }
 
-    template<Command CommandT, typename ReverterT>
-        requires Reverter<ReverterT, CommandT>
+    template<CommandC CommandT, typename ReverterT>
+        requires ReverterC<ReverterT, CommandT>
     void move_backward(History<CommandT>& history, ReverterT& reverter)
     {
         should_scroll_to_current_commit = true;
         history.move_backward(reverter);
     }
 
-    template<Command CommandT, typename CommandToString>
+    template<CommandC CommandT, typename CommandToString>
     void imgui_show(const History<CommandT>& history, CommandToString&& command_to_string)
     {
         const auto& commands                 = history.underlying_container();
@@ -127,7 +127,7 @@ struct UiForHistory {
         }
     }
 
-    template<Command CommandT>
+    template<CommandC CommandT>
     auto imgui_max_size(History<CommandT>& history, std::function<void(const char*)> help_marker) -> bool
     {
         ImGui::Text("History maximum size");
@@ -160,7 +160,7 @@ struct UiForHistory {
     }
 };
 
-template<Command CommandT>
+template<CommandC CommandT>
 class HistoryWithUi {
 public:
     template<typename CommandToString>
@@ -175,25 +175,25 @@ public:
     explicit HistoryWithUi(size_t max_size = 1000)
         : _history{max_size} {}
     template<typename MergerT>
-        requires Merger<MergerT, CommandT>
+        requires MergerC<MergerT, CommandT>
     void push(const CommandT& command, const MergerT& merger)
     {
         _ui.push(_history, command, merger);
     }
     template<typename MergerT>
-        requires Merger<MergerT, CommandT>
+        requires MergerC<MergerT, CommandT>
     void push(CommandT&& command, const MergerT& merger)
     {
         _ui.push(_history, std::move(command), merger);
     }
     template<typename ExecutorT>
-        requires Executor<ExecutorT, CommandT>
+        requires ExecutorC<ExecutorT, CommandT>
     void move_forward(ExecutorT& executor)
     {
         _ui.move_forward(_history, executor);
     }
     template<typename ReverterT>
-        requires Reverter<ReverterT, CommandT>
+        requires ReverterC<ReverterT, CommandT>
     void move_backward(ReverterT& reverter)
     {
         _ui.move_backward(_history, reverter);

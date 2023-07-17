@@ -8,7 +8,7 @@
 
 namespace cmd {
 
-template<Command CommandT>
+template<CommandC CommandT>
 class History {
 public:
     explicit History(size_t max_size = 1000)
@@ -28,7 +28,7 @@ public:
     }
 
     template<typename ExecutorT>
-        requires Executor<ExecutorT, CommandT>
+        requires ExecutorC<ExecutorT, CommandT>
     void move_forward(ExecutorT& executor)
     {
         if (_next_command_to_execute)
@@ -43,7 +43,7 @@ public:
     }
 
     template<typename ReverterT>
-        requires Reverter<ReverterT, CommandT>
+        requires ReverterC<ReverterT, CommandT>
     void move_backward(ReverterT& reverter)
     {
         if (_next_command_to_execute)
@@ -58,14 +58,14 @@ public:
     }
 
     template<typename MergerT>
-        requires Merger<MergerT, CommandT>
+        requires MergerC<MergerT, CommandT>
     void push(const CommandT& command, const MergerT& merger)
     {
         push_impl(command, merger);
     }
 
     template<typename MergerT>
-        requires Merger<MergerT, CommandT>
+        requires MergerC<MergerT, CommandT>
     void push(CommandT&& command, const MergerT& merger)
     {
         push_impl(std::move(command), merger);

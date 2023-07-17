@@ -3,6 +3,6 @@
 namespace cmd {
 
 template<typename T>
-concept Command = true;
+concept CommandC = true;
 
 } // namespace cmd

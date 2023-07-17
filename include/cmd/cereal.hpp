@@ -9,7 +9,7 @@ namespace cmd {
 struct SerializationForHistory {
     size_t max_saved_size{100};
 
-    template<class Archive, Command CommandT>
+    template<class Archive, CommandC CommandT>
     void save(Archive& archive, const History<CommandT>& history) const
     {
         auto copy = history.clone(); // We make a copy because we don't want to shrink the actual history,
@@ -21,7 +21,7 @@ struct SerializationForHistory {
         );
     }
 
-    template<class Archive, Command CommandT>
+    template<class Archive, CommandC CommandT>
     void load(Archive& archive, History<CommandT>& history)
     {
         archive(
@@ -31,32 +31,32 @@ struct SerializationForHistory {
     }
 };
 
-template<Command CommandT>
+template<CommandC CommandT>
 class HistoryWithSerialization {
 public:
     // ---Boilerplate to replicate the API of an History---
     explicit HistoryWithSerialization(size_t max_size = 1000)
         : _history{max_size} {}
     template<typename MergerT>
-        requires Merger<MergerT, CommandT>
+        requires MergerC<MergerT, CommandT>
     void push(const CommandT& command, const MergerT& merger)
     {
         _history.push(command, merger);
     }
     template<typename MergerT>
-        requires Merger<MergerT, CommandT>
+        requires MergerC<MergerT, CommandT>
     void push(CommandT&& command, const MergerT& merger)
     {
         _history.push(std::move(command), merger);
     }
     template<typename ExecutorT>
-        requires Executor<ExecutorT, CommandT>
+        requires ExecutorC<ExecutorT, CommandT>
     void move_forward(ExecutorT& executor)
     {
         _history.move_forward(executor);
     }
     template<typename ReverterT>
-        requires Reverter<ReverterT, CommandT>
+        requires ReverterC<ReverterT, CommandT>
     void move_backward(ReverterT& reverter)
     {
         _history.move_backward(reverter);
@@ -88,7 +88,7 @@ private:
 
 namespace cereal {
 
-template<class Archive, cmd::Command CommandT>
+template<class Archive, cmd::CommandC CommandT>
 void save(Archive& archive, const cmd::History<CommandT>& history)
 {
     archive(
@@ -98,7 +98,7 @@ void save(Archive& archive, const cmd::History<CommandT>& history)
     );
 }
 
-template<class Archive, cmd::Command CommandT>
+template<class Archive, cmd::CommandC CommandT>
 void load(Archive& archive, cmd::History<CommandT>& history)
 {
     std::optional<size_t> next_command_index;
