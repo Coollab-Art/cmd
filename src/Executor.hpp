@@ -3,6 +3,7 @@
 /// An Executor is the user-defined class responsible for executing commands.
 /// This is where they should put (or at least dispatch) all their logic.
 
+#include <memory>
 #include <optional>
 #include "Command.hpp"
 
