@@ -21,7 +21,7 @@ public:
 };
 
 template<typename Executor, typename Command>
-    requires cmd::Executor<Executor, Command>
+    requires cmd::ExecutorC<Executor, Command>
 void execute(Executor& executor, Command command)
 {
     executor.execute(command);
