@@ -74,6 +74,8 @@ public:
         _ui.move_backward(_history, reverter);
     }
     void dont_merge_next_command() const { _history.dont_merge_next_command(); }
+
+    auto size() const -> size_t { return _history.size(); }
     // ---End of boilerplate---
 
 private:
