@@ -57,6 +57,7 @@ public:
     auto begin() { return _container.begin(); }
     auto begin() const { return _container.begin(); }
     auto end() { return _container.end(); }
+    auto end() const { return _container.end(); }
 
     auto back() { return _container.back(); }
     void pop_back() { _container.pop_back(); }
