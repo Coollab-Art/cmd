@@ -44,18 +44,13 @@ TEST_CASE("Saving then loading History keeps content")
     history1.push(command, merger);
 
     {
-        std::ofstream             file("/home/totoshampoin/Documents/test.json");
+        std::ofstream             file("./test.json");
         cereal::JSONOutputArchive archive{file};
         archive(history1);
     }
     {
-        std::ifstream            file("/home/totoshampoin/Documents/test.json");
+        std::ifstream            file("./test.json");
         cereal::JSONInputArchive archive{file};
-        archive(history2);
-    }
-    {
-        std::ofstream             file("/home/totoshampoin/Documents/test2.json");
-        cereal::JSONOutputArchive archive{file};
         archive(history2);
     }
 
