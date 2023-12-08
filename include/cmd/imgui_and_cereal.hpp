@@ -45,6 +45,7 @@ public:
 
     auto imgui_max_size(std::function<void(const char*)> help_marker = &internal::imgui_help_marker) -> bool { return _ui.imgui_max_size(_history, help_marker); }
     auto imgui_max_saved_size(std::function<void(const char*)> help_marker = &internal::imgui_help_marker) -> bool { return _max_saved_size_widget.imgui<CommandT>(_serialization, help_marker); }
+    void set_max_saved_size(size_t size) { _serialization.max_saved_size = size; }
 
     // ---Boilerplate to replicate the API of an History---
     explicit HistoryWithUiAndSerialization(size_t max_size = 1000)
