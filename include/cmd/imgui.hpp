@@ -1,5 +1,4 @@
 #pragma once
-
 #include <iomanip>
 #include <sstream>
 #include <string>
@@ -102,9 +101,9 @@ struct UiForHistory {
     template<CommandC CommandT, typename CommandToString>
     void imgui_show(const History<CommandT>& history, CommandToString&& command_to_string)
     {
-        const auto& commands                 = history.underlying_container();
+        auto const& command_groups           = history.underlying_container();
         bool        drawn                    = false;
-        const auto  draw_position_in_history = [&]() {
+        auto const  draw_position_in_history = [&]() {
             ImGui::Separator();
             if (should_scroll_to_current_commit)
             {
@@ -112,14 +111,24 @@ struct UiForHistory {
                 should_scroll_to_current_commit = false;
             }
         };
-        for (auto it = commands.cbegin(); it != commands.cend(); ++it)
+        for (auto it = command_groups.cbegin(); it != command_groups.cend(); ++it)
         {
-            if (it == history.current_command_iterator())
+            if (it == history.current_command_group_iterator())
             {
                 draw_position_in_history();
                 drawn = true;
             }
-            ImGui::Text("%s", command_to_string(*it).c_str());
+            if (it->size() > 1)
+            {
+                ImGui::TextUnformatted("Group:");
+                for (auto const& command : *it)
+                    ImGui::TextUnformatted(fmt::format("    {}", command_to_string(command)).c_str());
+            }
+            else
+            {
+                assert(!it->empty());
+                ImGui::TextUnformatted(command_to_string((*it)[0]).c_str());
+            }
         }
         if (!drawn)
         {
@@ -199,6 +208,8 @@ public:
         _ui.move_backward(_history, reverter);
     }
     void dont_merge_next_command() const { _history.dont_merge_next_command(); }
+
+    void start_new_commands_group() { _history.start_new_commands_group(); }
     // ---End of boilerplate---
 
 private:

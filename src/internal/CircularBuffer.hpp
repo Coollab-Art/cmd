@@ -59,7 +59,8 @@ public:
     auto end() { return _container.end(); }
     auto end() const { return _container.end(); }
 
-    auto back() { return _container.back(); }
+    auto back() -> auto& { return _container.back(); }
+    auto back() const -> auto const& { return _container.back(); }
     void pop_back() { _container.pop_back(); }
 
     auto is_empty() const -> bool { return _container.empty(); }
@@ -70,7 +71,7 @@ public:
     }
 
     auto underlying_container() -> std::list<T>& { return _container; }
-    auto underlying_container() const -> const std::list<T>& { return _container; }
+    auto underlying_container() const -> std::list<T> const& { return _container; }
 
 private:
     template<typename Tref>

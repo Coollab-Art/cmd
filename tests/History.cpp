@@ -53,6 +53,7 @@ public:
         const auto command = Command_SetInt{.new_value = n, .previous_value = _value};
         _value             = n;
         history.push(command, _merger);
+        history.start_new_commands_group(); // We don't want commands to be put in a single group and be done / undone all at once.
     }
 
     void execute(Command_SetInt command)
@@ -212,15 +213,19 @@ TEST_CASE("Merging commands in an History")
 
     SUBCASE("Commands that are not the one at the end of the history are never merged")
     {
-        history.push({}, merger);
+        auto const push = [&]() {
+            history.push({}, merger);
+            history.start_new_commands_group();
+        };
+        push();
         history.dont_merge_next_command();
-        history.push({}, merger);
+        push();
         history.dont_merge_next_command();
-        history.push({}, merger);
+        push();
         REQUIRE(history.size() == 3);
         history.move_backward(executor); // We will discard two commits when pushing
         history.move_backward(executor); // and add one (unless it gets merged which souldn't happen)
-        history.push({}, merger);
+        push();
         REQUIRE(history.size() == 2);
     }
 }

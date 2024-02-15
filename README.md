@@ -50,6 +50,10 @@ Then include it as:
 #include <cmd/cmd.hpp>
 ```
 
+## Using
+
+TODO: document `start_new_commands_group()`.
+
 ## Advantages
 
 ### History

@@ -1,5 +1,4 @@
 #pragma once
-
 #include <cereal/types/list.hpp>
 #include <cereal/types/optional.hpp>
 #include "cmd.hpp"
@@ -61,7 +60,10 @@ public:
     {
         _history.move_backward(reverter);
     }
+
     void dont_merge_next_command() const { _history.dont_merge_next_command(); }
+
+    void start_new_commands_group() { _history.start_new_commands_group(); }
     // ---End of boilerplate---
 
 private:
@@ -93,7 +95,7 @@ void save(Archive& archive, const cmd::History<CommandT>& history)
 {
     archive(
         cereal::make_nvp("Commits", history.underlying_container()),
-        cereal::make_nvp("Position in history", history.unsafe_get_next_command_to_execute()),
+        cereal::make_nvp("Position in history", history.unsafe_get_next_command_group_to_execute()),
         cereal::make_nvp("Max size", history.max_size())
     );
 }
@@ -108,7 +110,7 @@ void load(Archive& archive, cmd::History<CommandT>& history)
         next_command_index,
         max_size
     );
-    history.unsafe_set_next_command_to_execute(next_command_index);
+    history.unsafe_set_next_command_group_to_execute(next_command_index);
     history.set_max_size(max_size);
 }
 

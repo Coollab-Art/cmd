@@ -1,5 +1,4 @@
 #pragma once
-
 #include <cmd/cereal.hpp>
 #include <cmd/cmd.hpp>
 #include <cmd/imgui.hpp>
@@ -75,6 +74,8 @@ public:
         _ui.move_backward(_history, reverter);
     }
     void dont_merge_next_command() const { _history.dont_merge_next_command(); }
+
+    void start_new_commands_group() { _history.start_new_commands_group(); }
 
     auto size() const -> size_t { return _history.size(); }
     // ---End of boilerplate---
