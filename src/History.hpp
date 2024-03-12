@@ -164,6 +164,9 @@ private:
     template<typename CommandType, typename MergerType> // CommandType instead of CommandT to not override CommandT which is already the template parameter of the whole class; CommandT and CommandType need to be different otherwise perfect forwarding won't kick in
     void push_impl(CommandType&& command, const MergerType& merger)
     {
+        if (_command_groups.max_size() == 0) // Avoids a crash later on in push_the_command(), where we assume that doing a push_back() on _commands_group guarantees it won't be empty.
+            return;
+
         auto const push_the_command = [&]() {
             if (_should_put_next_command_in_new_group
                 || _command_groups.is_empty())
