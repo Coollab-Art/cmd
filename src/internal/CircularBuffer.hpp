@@ -73,6 +73,11 @@ public:
     auto underlying_container() -> std::list<T>& { return _container; }
     auto underlying_container() const -> std::list<T> const& { return _container; }
 
+    auto operator==(const CircularBuffer<T>& other) const -> bool
+    {
+        return _container == other._container;
+    }
+
 private:
     template<typename Tref>
     void push_back_impl(Tref&& t)

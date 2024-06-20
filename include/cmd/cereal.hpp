@@ -66,6 +66,11 @@ public:
     void start_new_commands_group() { _history.start_new_commands_group(); }
     // ---End of boilerplate---
 
+    auto operator==(const HistoryWithSerialization<CommandT>& other) const -> bool
+    {
+        return _history == other._history;
+    }
+
 private:
     History<CommandT>       _history;
     SerializationForHistory _serialization{};
