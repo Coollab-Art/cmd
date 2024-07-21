@@ -1,7 +1,8 @@
 #pragma once
-#include <cmd/cereal.hpp>
 #include <cmd/cmd.hpp>
 #include <cmd/imgui.hpp>
+#include <cmd/ser20.hpp>
+
 
 namespace cmd {
 
@@ -87,7 +88,7 @@ private:
     SerializationForHistory _serialization{};
 
 private:
-    friend class cereal::access;
+    friend class ser20::access;
 
     template<class Archive>
     void save(Archive& archive) const

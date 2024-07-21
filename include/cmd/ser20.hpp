@@ -1,6 +1,6 @@
 #pragma once
-#include <cereal/types/list.hpp>
-#include <cereal/types/optional.hpp>
+#include <ser20/types/list.hpp>
+#include <ser20/types/optional.hpp>
 #include "cmd.hpp"
 
 namespace cmd {
@@ -15,8 +15,8 @@ struct SerializationForHistory {
         copy.shrink(max_saved_size); // in case it is still used even after being serialized
                                      // TODO(JF) performance could be improved by only copying the commits that we want to serialize. Currently we copy all the commits and then discard many of them in shrink()
         archive(
-            cereal::make_nvp("History", copy),
-            cereal::make_nvp("Max saved size", max_saved_size)
+            ser20::make_nvp("History", copy),
+            ser20::make_nvp("Max saved size", max_saved_size)
         );
     }
 
@@ -71,7 +71,7 @@ private:
     SerializationForHistory _serialization{};
 
 private:
-    friend class cereal::access;
+    friend class ser20::access;
 
     template<class Archive>
     void save(Archive& archive) const
@@ -88,15 +88,15 @@ private:
 
 } // namespace cmd
 
-namespace cereal {
+namespace ser20 {
 
 template<class Archive, cmd::CommandC CommandT>
 void save(Archive& archive, const cmd::History<CommandT>& history)
 {
     archive(
-        cereal::make_nvp("Commits", history.underlying_container()),
-        cereal::make_nvp("Position in history", history.unsafe_get_next_command_group_to_execute()),
-        cereal::make_nvp("Max size", history.max_size())
+        ser20::make_nvp("Commits", history.underlying_container()),
+        ser20::make_nvp("Position in history", history.unsafe_get_next_command_group_to_execute()),
+        ser20::make_nvp("Max size", history.max_size())
     );
 }
 
@@ -114,4 +114,4 @@ void load(Archive& archive, cmd::History<CommandT>& history)
     history.set_max_size(max_size);
 }
 
-} // namespace cereal
+} // namespace ser20
