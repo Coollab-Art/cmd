@@ -121,13 +121,10 @@ struct UiForHistory {
             if (it->size() > 1)
             {
                 ImGui::TextUnformatted("Group:");
-                for (auto const& command : *it)
-                    ImGui::TextUnformatted(fmt::format("    {}", command_to_string(command)).c_str());
             }
             else
             {
                 assert(!it->empty());
-                ImGui::TextUnformatted(command_to_string((*it)[0]).c_str());
             }
         }
         if (!drawn)
