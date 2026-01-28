@@ -102,6 +102,11 @@ public:
         }
     }
 
+    void clear()
+    {
+        shrink(0);
+    }
+
     /// Removes commits until the size of the history is <= max_size
     void shrink(size_t max_size)
     {
